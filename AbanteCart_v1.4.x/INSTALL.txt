@@ -1,6 +1,6 @@
 ====================================================
 PlugnPay Remote API Module (Credit Card Payments)
-Payment Extension for AbanteCart v1.4.x — v1.0.0
+Payment Extension for AbanteCart v1.4.x — v1.0.1
 ====================================================
 
 ***** IMPORTANT NOTES *****
@@ -16,6 +16,14 @@ Requires AbanteCart 1.4.x and PHP 8.2+.
 
 PCI: Collecting cards onsite increases PCI scope. For hosted (lower
 PCI) checkout, use a PlugnPay Smart Screens module when available.
+
+v1.0.1 notes (AbanteCart 1.4.x fast checkout):
+- Card form uses stacked full-width fields (readable in the narrow pane)
+- Confirm no longer uses lock-on-click (that caused an endless spinner)
+- AJAX send route: extension/plugnpay_api_cc/send
+- Success redirect: checkout/finalize
+If you previously installed v1.0.0, re-upload this package
+(or overwrite the extension files) and hard-refresh checkout.
 ***************************
 
 To Install (Admin upload — recommended):
@@ -30,6 +38,9 @@ To Install (Admin upload — recommended):
 
 4. Enter Publisher Name + Remote Client Password. Choose Authorization
    Type (authonly or authpostauth).
+
+5. Place a test order. After approval you should land on checkout/finalize
+   (not an endless spinner on Confirm).
 
 Manual FTP install (optional):
 

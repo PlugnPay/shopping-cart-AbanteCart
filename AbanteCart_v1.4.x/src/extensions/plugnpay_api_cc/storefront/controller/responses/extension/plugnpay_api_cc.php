@@ -35,6 +35,7 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 
 		$this->loadLanguage('plugnpay_api_cc/plugnpay_api_cc');
 
+		// Match core payment modules (Authorize.Net / CardConnect): no r/ prefix for AJAX send
 		$data['action'] = $this->html->getSecureURL('extension/plugnpay_api_cc/send');
 
 		//build submit form
@@ -44,7 +45,8 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 			array(
 				'type' => 'form',
 				'name' => 'plugnpay',
-				'attr' => 'class = "form-horizontal validate-creditcard"',
+				// Stacked layout for AbanteCart 1.4 fast checkout; novalidate + validateForm()
+				'attr' => 'class="validate-creditcard" novalidate',
 				'csrf' => true
 			)
 		);
@@ -70,7 +72,9 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 				'type' => 'input',
 				'name' => 'cc_owner',
 				'value' => $cc_owner_default,
-				'attr' => 'autocomplete="cc-name"'
+				'placeholder' => $this->language->get('entry_cc_owner'),
+				'required' => true,
+				'attr' => 'autocomplete="cc-name" id="cc_owner"'
 			)
 		);
 		$data['entry_cc_number'] = $this->language->get('entry_cc_number');
@@ -78,7 +82,9 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 			array(
 				'type' => 'input',
 				'name' => 'cc_number',
-				'attr' => 'autocomplete="cc-number"',
+				'placeholder' => $this->language->get('entry_cc_number'),
+				'required' => true,
+				'attr' => 'autocomplete="cc-number" inputmode="numeric" id="cc_number"',
 				'value' => ''
 			)
 		);
@@ -92,8 +98,9 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 				'type' => 'input',
 				'name' => 'cc_cvv2',
 				'value' => '',
-				'style' => 'short input-mini',
-				'attr' => ' size="3" maxlength="4" autocomplete="cc-csc"'
+				'placeholder' => $this->language->get('entry_cc_cvv2_placeholder'),
+				'required' => $data['use_cvv'],
+				'attr' => 'maxlength="4" autocomplete="cc-csc" inputmode="numeric" id="cc_cvv2"'
 			)
 		);
 		$data['button_confirm'] = $this->language->get('button_confirm');
@@ -101,7 +108,8 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 
 		$months = array();
 		for ($i = 1; $i <= 12; $i++) {
-			$months[sprintf('%02d', $i)] = sprintf('%02d - ', $i) . date('F', mktime(0, 0, 0, $i, 1, 2000));
+			// Short labels avoid wrapping inside the fast-checkout pane
+			$months[sprintf('%02d', $i)] = sprintf('%02d - %s', $i, date('M', mktime(0, 0, 0, $i, 1, 2000)));
 		}
 		$data['cc_expire_date_month'] = $form->getFieldHtml(
 			array(
@@ -109,7 +117,7 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 				'name' => 'cc_expire_date_month',
 				'value' => sprintf('%02d', date('m')),
 				'options' => $months,
-				'style' => 'short input-small'
+				'required' => true
 			)
 		);
 
@@ -124,18 +132,12 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 				'name' => 'cc_expire_date_year',
 				'value' => sprintf('%04d', date('Y') + 1),
 				'options' => $years,
-				'style' => 'short input-small'
+				'required' => true
 			)
 		);
 
-		$rt = isset($this->request->get['rt']) ? (string)$this->request->get['rt'] : '';
-		if ($rt === 'checkout/guest_step_3') {
-			$back_url = $this->html->getSecureURL('checkout/guest_step_2', '&mode=edit', true);
-		} elseif (strpos($rt, 'fast_checkout') !== false || $rt === 'checkout/fast_checkout') {
-			$back_url = $this->html->getSecureURL('checkout/fast_checkout');
-		} else {
-			$back_url = $this->html->getSecureURL('checkout/payment', '&mode=edit', true);
-		}
+		// AbanteCart 1.4.x defaults to fast checkout
+		$back_url = $this->html->getSecureURL('checkout/fast_checkout');
 
 		$data['back'] = $this->html->buildElement(
 			array(
@@ -156,9 +158,6 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 
 		//init controller data
 		$this->extensions->hk_UpdateData($this, __FUNCTION__);
-
-		//load creditcard input validation
-		$this->document->addScriptBottom($this->view->templateResource('/javascript/credit_card_validation.js'));
 
 		$this->processTemplate('responses/plugnpay_api_cc.tpl');
 	}
@@ -194,16 +193,15 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 			'type' => 'input',
 			'name' => 'cc_cvv2',
 			'value' => '',
-			'style' => 'short input-small',
 			'required' => $data['use_cvv'],
-			'attr' => ' size="3"'
+			'attr' => 'maxlength="4" inputmode="numeric"'
 		);
 		$data['button_confirm'] = $this->language->get('button_confirm');
 		$data['button_back'] = $this->language->get('button_back');
 
 		$months = array();
 		for ($i = 1; $i <= 12; $i++) {
-			$months[sprintf('%02d', $i)] = sprintf('%02d - ', $i) . date('F', mktime(0, 0, 0, $i, 1, 2000));
+			$months[sprintf('%02d', $i)] = sprintf('%02d - %s', $i, date('M', mktime(0, 0, 0, $i, 1, 2000)));
 		}
 		$data['cc_expire_date_month'] =
 			array(
@@ -211,8 +209,7 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 				'name' => 'cc_expire_date_month',
 				'value' => sprintf('%02d', date('m')),
 				'options' => $months,
-				'required' => true,
-				'style' => 'short input-small'
+				'required' => true
 			);
 
 		$today = getdate();
@@ -225,8 +222,7 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 			'name' => 'cc_expire_date_year',
 			'value' => sprintf('%04d', date('Y') + 1),
 			'options' => $years,
-			'required' => true,
-			'style' => 'short input-small'
+			'required' => true
 		);
 
 		$data['process_rt'] = 'plugnpay_api_cc/send';
@@ -242,15 +238,14 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 
 		if (!$this->csrftoken->isTokenValid()) {
 			$json['error'] = $this->language->get('error_unknown');
-			$this->load->library('json');
-			$this->response->setOutput(AJson::encode($json));
+			$this->attachCsrf($json);
+			$this->outputJson($json);
 			return;
 		}
 
 		if (!$this->request->is_POST()) {
 			$json['error'] = $this->language->get('error_unknown');
-			$this->load->library('json');
-			$this->response->setOutput(AJson::encode($json));
+			$this->outputJson($json);
 			return;
 		}
 
@@ -260,8 +255,7 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 
 		if (!$order_info) {
 			$json['error'] = $this->language->get('error_unknown');
-			$this->load->library('json');
-			$this->response->setOutput(AJson::encode($json));
+			$this->outputJson($json);
 			return;
 		}
 
@@ -275,8 +269,7 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 		if ($cc_number === '' || strlen($cc_number) < 13 || $exp_month === '00' || $exp_year === '') {
 			$json['error'] = $this->language->get('error_cc_details');
 			$this->attachCsrf($json);
-			$this->load->library('json');
-			$this->response->setOutput(AJson::encode($json));
+			$this->outputJson($json);
 			return;
 		}
 
@@ -284,8 +277,7 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 		if ($use_cvv && (strlen($cc_cvv) < 3 || strlen($cc_cvv) > 4)) {
 			$json['error'] = $this->language->get('error_cc_cvv');
 			$this->attachCsrf($json);
-			$this->load->library('json');
-			$this->response->setOutput(AJson::encode($json));
+			$this->outputJson($json);
 			return;
 		}
 
@@ -312,8 +304,7 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 				'PlugnPay Remote API communication error: ' . $api->getCommError()
 			);
 			$this->attachCsrf($json);
-			$this->load->library('json');
-			$this->response->setOutput(AJson::encode($json));
+			$this->outputJson($json);
 			return;
 		}
 
@@ -339,7 +330,7 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 			$order_status_id = $this->getSuccessOrderStatusId();
 			$this->model_checkout_order->confirm($order_id, $this->config->get('config_order_status_id'));
 			$this->model_checkout_order->update($order_id, $order_status_id, $message, false);
-			$json['success'] = $this->html->getSecureURL('checkout/success');
+			$json['success'] = $this->html->getSecureURL('checkout/finalize', '&order_id=' . (int)$order_id);
 		} else {
 			$final = isset($response['FinalStatus']) ? (string)$response['FinalStatus'] : '';
 			$gateway_msg = isset($response['MErrMsg']) ? trim((string)$response['MErrMsg']) : '';
@@ -382,7 +373,19 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 			$this->attachCsrf($json);
 		}
 
+		$this->outputJson($json);
+	}
+
+	/**
+	 * @param array $json
+	 */
+	protected function outputJson(array $json) {
 		$this->load->library('json');
+		if (method_exists($this->response, 'addJSONHeader')) {
+			$this->response->addJSONHeader();
+		} else {
+			$this->response->addHeader('Content-Type: application/json; charset=UTF-8');
+		}
 		$this->response->setOutput(AJson::encode($json));
 	}
 

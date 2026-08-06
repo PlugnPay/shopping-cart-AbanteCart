@@ -1,6 +1,6 @@
 # AbanteCart 1.4.x — PlugnPay Payment Modules
 
-Extension packages for AbanteCart **1.4.x** (target **1.4.4**). Current packages: Remote API **v1.0.0**, Smart Screens v2 **v1.0.1**.
+Extension packages for AbanteCart **1.4.x** (target **1.4.4**). Current packages: Remote API **v1.0.1**, Smart Screens v2 **v1.0.1**.
 
 Install through Admin → **Extensions** → **Install Extension** (`.tar.gz` upload), then enable under Admin → **Extensions** → **Payments**.
 
@@ -24,8 +24,11 @@ You may install both extensions; enable only the payment method(s) you need unde
 - Source: [src/extensions/plugnpay_api_cc/](./src/extensions/plugnpay_api_cc/)
 - Full docs: [src/extensions/plugnpay_api_cc/README.md](./src/extensions/plugnpay_api_cc/README.md)
 - Quick install: [INSTALL.txt](./INSTALL.txt)
+- Package version: **v1.0.1**
 
-Collects card data on your storefront and posts from the server to PlugnPay Remote API (`authonly` or `authpostauth`). Capture / void / refund are done in PlugnPay Merchant Admin.
+Collects card data on your storefront (fast-checkout friendly stacked form) and posts from the server to PlugnPay Remote API (`authonly` or `authpostauth`). On approval the customer is sent to **`checkout/finalize`**. Capture / void / refund are done in PlugnPay Merchant Admin.
+
+If upgrading from API **v1.0.0**, re-upload `abantecart_1.4_api_module.tar.gz` so the form layout, Confirm submit fix, and finalize redirect are applied.
 
 ## Smart Screens v2 (hosted)
 

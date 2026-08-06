@@ -61,7 +61,7 @@ For complete instructions, open the README inside the package (or the linked doc
 * Storefront HTTPS is required (production only; no Test/Production toggle).
 * Authorization Type: `authonly` or `authpostauth` (1.4.x module).
 * Capture / void / refund are done in PlugnPay Merchant Admin (not from AbanteCart).
-* For AbanteCart 1.4.x: extension package **v1.0.0**.
+* For AbanteCart 1.4.x: extension package **v1.0.1** (fast-checkout form layout + Confirm submit fix; success → `checkout/finalize`).
 
 ### Smart Screens v2
 

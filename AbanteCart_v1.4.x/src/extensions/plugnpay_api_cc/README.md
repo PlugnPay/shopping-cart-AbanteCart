@@ -1,6 +1,6 @@
 # PlugnPay Remote API Module for AbanteCart 1.4.x
 
-**Version:** v1.0.0
+**Version:** v1.0.1
 
 Credit card payments via PlugnPay’s Remote API (`https://pay1.plugnpay.com/payment/pnpremote.cgi`).
 
@@ -89,11 +89,20 @@ There is **no** Transaction Mode toggle — the module always runs in production
 
 ## Checkout flow
 
-1. Customer enters card details on the payment confirmation page.
-2. Storefront AJAX POSTs to `extension/plugnpay_api_cc/send`.
+Designed for AbanteCart **1.4.x fast checkout**:
+
+1. Customer selects PlugnPay Remote API and enters card details on the payment confirmation pane (stacked full-width fields).
+2. Browser AJAX POSTs to `extension/plugnpay_api_cc/send` (same route style as core gateways such as Authorize.Net / CardConnect).
 3. Module POSTs to `pnpremote.cgi` with hyphenated Remote API fields and configured `authtype`.
-4. On `FinalStatus=success`, order is confirmed; `orderID` and auth code are written to order history.
-5. On decline / error, customer stays on payment with the gateway message.
+4. On `FinalStatus=success`, the order is confirmed; `orderID` and auth code are written to order history; customer is redirected to **`checkout/finalize`**.
+5. On decline / error, the customer stays on the payment form with the gateway message (spinner overlay is cleared).
+
+### Card form (storefront UI)
+
+- Labels sit **above** inputs (not skinny side-by-side `col-sm-*` columns).
+- Short labels: Name on Card, Card Number, Expiry, Security Code.
+- Expiry months use short names (`01 - Jan`).
+- Confirm button is standard `btn-primary` (no `lock-on-click` — that class disabled the button mid-click and blocked submit on 1.4).
 
 ## Logging
 
@@ -107,6 +116,14 @@ Never logged: full card number, CVV, or publisher-password.
 
 ## Troubleshooting
 
+| Symptom | What to check |
+|---|---|
+| Endless spinner on Confirm / nothing happens | Confirm package is **v1.0.1+** (no `lock-on-click`; delegated `#plugnpay` submit). Hard-refresh or re-upload the extension. |
+| “The page you requested cannot be found!” after approval | Success must go to `checkout/finalize` (v1.0.1+). Re-upload if still on v1.0.0. |
+| Method missing at checkout | Storefront HTTPS enabled; Publisher Name + Remote Client Password set |
+| Blank / communication error | Outbound HTTPS from the shop server to `pay1.plugnpay.com` (see curl test below) |
+| CSRF / unexpected error on retry | Decline path refreshes CSRF tokens; reload payment step if retries keep failing |
+
 Test connectivity from the server:
 
 ```bash
@@ -117,16 +134,16 @@ You should receive a URL-encoded response containing `FinalStatus=…`.
 
 If the response is blank: firewall / outbound HTTPS / DNS issue.
 
-If the method does not appear at checkout: confirm storefront HTTPS is enabled and credentials are set.
-
 ## Manual test checklist
 
 - [ ] Extension installs via `.tar.gz` package upload
 - [ ] Extension appears under Extensions → Payments
 - [ ] Configuration shows Publisher Name / Remote Client Password / Auth Type (no Test Mode / Capture-Void-Refund UI)
-- [ ] Approved authonly creates a **Pending** order with AUTH + orderID history
+- [ ] Card form fields are full-width and readable in fast checkout (no clipped inputs / severe label wrap)
+- [ ] Confirm processes payment (no endless spinner); Network tab shows POST to `extension/plugnpay_api_cc/send`
+- [ ] Approved authonly creates a **Pending** order with AUTH + orderID history and lands on **`checkout/finalize`**
 - [ ] Approved authpostauth uses Completed Order Status
-- [ ] Declined card shows gateway message and restores checkout
+- [ ] Declined card shows gateway message and restores the payment form
 - [ ] Debug log redacts PAN/CVV/password
 - [ ] Method hidden without HTTPS
 - [ ] Location restriction works
@@ -153,6 +170,20 @@ src/extensions/plugnpay_api_cc/
     icon.png
     icon-hi-resolution.png
 ```
+
+## Changelog
+
+### v1.0.1
+
+- Restructure onsite credit card form for AbanteCart 1.4 fast checkout (stacked full-width fields)
+- Shorten field labels / expiry month text to reduce wrapping
+- Fix submit hang: remove `lock-on-click` (it disabled the button mid-click and blocked submit); use delegated submit + `validateForm()`
+- POST payment to `extension/plugnpay_api_cc/send` (same pattern as core gateways)
+- Success redirect uses `checkout/finalize` (replaces removed `checkout/success`)
+
+### v1.0.0
+
+- Initial Remote API release for AbanteCart 1.4.x
 
 ## Uninstall
 

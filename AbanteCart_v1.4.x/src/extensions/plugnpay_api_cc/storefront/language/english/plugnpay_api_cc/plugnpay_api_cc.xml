@@ -18,23 +18,27 @@
   </definition>
   <definition>
     <key>entry_cc_owner</key>
-    <value><![CDATA[Card Holder's Name:]]></value>
+    <value><![CDATA[Name on Card]]></value>
   </definition>
   <definition>
     <key>entry_cc_number</key>
-    <value><![CDATA[Card Number:]]></value>
+    <value><![CDATA[Card Number]]></value>
   </definition>
   <definition>
     <key>entry_cc_expire_date</key>
-    <value><![CDATA[Card Expiry Date:]]></value>
+    <value><![CDATA[Expiry]]></value>
   </definition>
   <definition>
     <key>entry_cc_cvv2</key>
-    <value><![CDATA[Card Security Code]]></value>
+    <value><![CDATA[Security Code]]></value>
   </definition>
   <definition>
 	<key>entry_cc_cvv2_short</key>
-	<value><![CDATA[(CVV2 ?)]]></value>
+	<value><![CDATA[(CVV?)]]></value>
+  </definition>
+  <definition>
+	<key>entry_cc_cvv2_placeholder</key>
+	<value><![CDATA[CVV]]></value>
   </definition>
   <definition>
 	<key>entry_what_cvv2</key>

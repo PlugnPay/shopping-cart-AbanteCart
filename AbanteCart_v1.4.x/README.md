@@ -1,6 +1,6 @@
 # AbanteCart 1.4.x — PlugnPay Payment Modules
 
-Extension packages for AbanteCart **1.4.x** (target **1.4.4**). Current module version: **v1.0.0**.
+Extension packages for AbanteCart **1.4.x** (target **1.4.4**). Current packages: Remote API **v1.0.0**, Smart Screens v2 **v1.0.1**.
 
 Install through Admin → **Extensions** → **Install Extension** (`.tar.gz` upload), then enable under Admin → **Extensions** → **Payments**.
 
@@ -32,8 +32,11 @@ Collects card data on your storefront and posts from the server to PlugnPay Remo
 - Source: [src/extensions/plugnpay_ss2/](./src/extensions/plugnpay_ss2/)
 - Full docs: [src/extensions/plugnpay_ss2/README.md](./src/extensions/plugnpay_ss2/README.md)
 - Quick install: [INSTALL_SS2.txt](./INSTALL_SS2.txt)
+- Package version: **v1.0.1**
 
-Redirects customers to PlugnPay hosted Smart Screens. Return POST completes the AbanteCart order as **Pending** (authorization-only). Capture / void / refund are done in PlugnPay Merchant Admin, not from AbanteCart.
+Redirects customers to PlugnPay hosted Smart Screens. Return POST hits `rt=r/extension/plugnpay_ss2/callback`, then completes the AbanteCart order as **Pending** and sends the customer to **`checkout/finalize`** (authorization-only). Capture / void / refund are done in PlugnPay Merchant Admin, not from AbanteCart.
+
+If upgrading from SS2 **v1.0.0**, re-upload `abantecart_1.4_ss2_module.tar.gz` so the return route and finalize redirect are applied.
 
 ## Common install steps (both)
 

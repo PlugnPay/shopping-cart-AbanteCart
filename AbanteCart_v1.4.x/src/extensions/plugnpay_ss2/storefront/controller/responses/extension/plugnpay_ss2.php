@@ -143,9 +143,9 @@ class ControllerResponsesExtensionPlugnpaySs2 extends AController {
 		$session_id = session_id();
 		$order_id = (string)$order_info['order_id'];
 
-		// Session restore on cross-site return POST (AbanteCart shared session via GET session_id)
+		// Browser return must use response route prefix r/ (same as LiqPay result_url / PayPal RETURNURL)
 		$success_url = $this->html->getSecureURL(
-			'extension/plugnpay_ss2/callback',
+			'r/extension/plugnpay_ss2/callback',
 			'&session_id=' . urlencode($session_id) . '&order_id=' . urlencode($order_id)
 		);
 
@@ -309,7 +309,8 @@ class ControllerResponsesExtensionPlugnpaySs2 extends AController {
 			$this->session->data['plugnpay_ss2_submit_data']
 		);
 
-		redirect($this->html->getSecureURL('checkout/success'));
+		// AbanteCart 1.4.x uses checkout/finalize (checkout/success was removed)
+		redirect($this->html->getSecureURL('checkout/finalize', '&order_id=' . (int)$order_id));
 	}
 
 	/**
@@ -433,10 +434,7 @@ class ControllerResponsesExtensionPlugnpaySs2 extends AController {
 	 */
 	protected function failToCheckout($message) {
 		$this->session->data['error'] = $message;
-		$rt = isset($this->request->get['rt']) ? (string)$this->request->get['rt'] : '';
-		if (strpos($rt, 'fast_checkout') !== false) {
-			redirect($this->html->getSecureURL('checkout/fast_checkout'));
-		}
-		redirect($this->html->getSecureURL('checkout/payment', '&mode=edit', true));
+		// AbanteCart 1.4.x defaults to fast checkout; classic checkout/payment is deprecated
+		redirect($this->html->getSecureURL('checkout/fast_checkout'));
 	}
 }

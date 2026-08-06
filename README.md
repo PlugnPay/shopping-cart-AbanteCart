@@ -68,8 +68,9 @@ For complete instructions, open the README inside the package (or the linked doc
 * Hosted checkout at `https://pay1.plugnpay.com/pay/`.
 * AbanteCart does **not** collect sensitive payment data at checkout.
 * Customer is redirected to PlugnPay, then returned to AbanteCart after approval or decline.
+* Return route (1.4.x): `rt=r/extension/plugnpay_ss2/callback` → success lands on `checkout/finalize`.
 * HTTPS on your store is required (return URL / session).
-* For AbanteCart 1.4.x: extension package **v1.0.0**; authorization-only hosted checkout (settle in PlugnPay Admin).
+* For AbanteCart 1.4.x: extension package **v1.0.1**; authorization-only hosted checkout (settle in PlugnPay Admin).
 * No public demo / test publisher — use merchant-supplied credentials.
 
 ### Smart Screens v1 (legacy / incomplete)

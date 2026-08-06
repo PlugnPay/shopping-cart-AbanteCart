@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<definitions>
+  <definition>
+    <key>plugnpay_api_cc_name</key>
+    <value><![CDATA[PlugnPay Remote API]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_note</key>
+    <value><![CDATA[Collects card data onsite and posts to PlugnPay Remote API (pnpremote.cgi). Requires HTTPS and PHP cURL. Use Remote Client Password from PlugnPay Security Administration — not your admin login password. Capture / void / refund are performed in PlugnPay Merchant Admin.]]></value>
+  </definition>
+  <definition>
+    <key>text_payment</key>
+    <value><![CDATA[Payment]]></value>
+  </definition>
+  <definition>
+    <key>text_success</key>
+    <value><![CDATA[Success: You have modified PlugnPay Remote API account details!]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_authtype_authonly</key>
+    <value><![CDATA[Authorize Only (settle later in PlugnPay Admin)]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_authtype_authpostauth</key>
+    <value><![CDATA[Authorize and Capture (Sale)]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_emailcust_yes</key>
+    <value><![CDATA[Yes — do not send gateway receipt to customer]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_emailcust_no</key>
+    <value><![CDATA[No — allow PlugnPay to email customer]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_use_cvv_1</key>
+    <value><![CDATA[Yes]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_use_cvv_0</key>
+    <value><![CDATA[No]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_debugging_0</key>
+    <value><![CDATA[Off]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_debugging_1</key>
+    <value><![CDATA[Log File]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_login</key>
+    <value><![CDATA[Publisher Name:]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_key</key>
+    <value><![CDATA[Remote Client Password:<br /><span class="help">From PlugnPay Security Administration. This is NOT your admin login password.</span>]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_pubemail</key>
+    <value><![CDATA[Publisher Email:<br /><span class="help">Optional merchant notify / confirmation address used by PlugnPay.</span>]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_authtype</key>
+    <value><![CDATA[Authorization Type:]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_emailcust</key>
+    <value><![CDATA[Prevent Gateway Customer Email:]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_use_cvv</key>
+    <value><![CDATA[Request CVV Number:]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_order_status_id</key>
+    <value><![CDATA[Completed Order Status:<br /><span class="help">Used for authpostauth (sale). Auth-only forces Pending until settled in PlugnPay Admin.</span>]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_debugging</key>
+    <value><![CDATA[Debug Logging:<br /><span class="help">Writes sanitized gateway logs under the store logs directory (never logs full PAN/CVV/password).</span>]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_location_id</key>
+    <value><![CDATA[Location:]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_location_id_0</key>
+    <value><![CDATA[All Locations]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_decline_limit</key>
+    <value><![CDATA[Decline attempts limit:<br /><span class="help">Security setting to prevent fraud attacks. If number of sequential declines exceed the limit, customer's account will be locked and message sent to administrator.</span>]]></value>
+  </definition>
+  <definition>
+    <key>error_permission</key>
+    <value><![CDATA[Warning: You do not have permission to modify payment PlugnPay Remote API!]]></value>
+  </definition>
+  <definition>
+    <key>error_login</key>
+    <value><![CDATA[Publisher Name Required!]]></value>
+  </definition>
+  <definition>
+    <key>error_key</key>
+    <value><![CDATA[Remote Client Password Required!]]></value>
+  </definition>
+</definitions>

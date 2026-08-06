@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<definitions>
+	<definition>
+		<key>plugnpay_name</key>
+		<value><![CDATA[PlugnPay SSv1]]></value>
+	</definition>
+	<definition>
+		<key>text_payment</key>
+		<value><![CDATA[Payment]]></value>
+	</definition>
+	<definition>
+		<key>text_success</key>
+		<value><![CDATA[Success: You have modified PlugnPay SSv1 account details!]]></value>
+	</definition>
+	<definition>
+		<key>plugnpay_note</key>
+		<value><![CDATA[
+With this extension you can use PlugnPay Smart Screens v1 payment system to accept payments from your customers.<br>
+<b>Sign up free today!</b> Visit <a href="https://www.plugnpay.com/">www.plugnpay.com</a> today!
+<br>Don't forget to setup INS URL here <a href="https://www.plugnpay.com/va/notifications/">https://www.plugnpay.com/va/notifications/</a>.
+<br><br>Your INS URL is <h4>#storefront#rt=extension/plugnpay/callback</h4>
+<br><br>Also setup Approved URL here <a href="https://www.plugnpay.com/va/acct/detail_company_info">https://www.plugnpay.com/va/acct/detail_company_info</a> and choose "Header return".
+<br><br>Your Approved URL is <h4>#storefront#rt=checkout/success</h4>
+		 ]]></value>
+	</definition>
+	<definition>
+		<key>plugnpay_account</key>
+		<value><![CDATA[Gateway Account:]]></value>
+	</definition>
+	<definition>
+		<key>plugnpay_secret</key>
+		<value>
+			<![CDATA[Response Hash Key:<br /><span class="help">The secret word to confirm transactions with (must be the same as defined on the merchant account configuration page.</span>]]></value>
+	</definition>
+	<definition>
+		<key>plugnpay_test</key>
+		<value><![CDATA[Test Mode:]]></value>
+	</definition>
+	<definition>
+		<key>plugnpay_test_1</key>
+		<value><![CDATA[Yes]]></value>
+	</definition>
+	<definition>
+		<key>plugnpay_test_0</key>
+		<value><![CDATA[No]]></value>
+	</definition>
+	<definition>
+		<key>plugnpay_order_status_id</key>
+		<value><![CDATA[Order Status:]]></value>
+	</definition>
+	<definition>
+		<key>plugnpay_location_id</key>
+		<value><![CDATA[Location:]]></value>
+	</definition>
+	<definition>
+		<key>plugnpay_location_id_0</key>
+		<value><![CDATA[All Locations]]></value>
+	</definition>
+	<definition>
+		<key>error_permission</key>
+		<value><![CDATA[Warning: You do not have permission to modify payment PlugnPay SSv1!]]></value>
+	</definition>
+	<definition>
+		<key>error_account</key>
+		<value><![CDATA[Gateway Account Required!]]></value>
+	</definition>
+	<definition>
+		<key>error_secret</key>
+		<value><![CDATA[Verification Hash Key Required!]]></value>
+	</definition>
+</definitions>

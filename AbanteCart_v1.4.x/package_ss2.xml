@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package>
+	<id>plugnpay_ss2</id>
+	<type>extension</type>
+	<version>1.0.0</version>
+	<priority>10</priority>
+	<cartversions>
+		<item>1.4</item>
+	</cartversions>
+	<phpminversion>8.2</phpminversion>
+	<package_content>
+		<extensions>
+			<extension>plugnpay_ss2</extension>
+		</extensions>
+	</package_content>
+</package>

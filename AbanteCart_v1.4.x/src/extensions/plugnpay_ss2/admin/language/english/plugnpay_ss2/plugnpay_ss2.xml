@@ -1,0 +1,91 @@
+<?xml version="1.0"?>
+<definitions>
+  <definition>
+    <key>plugnpay_ss2_name</key>
+    <value><![CDATA[PlugnPay Smart Screens v2]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_note</key>
+    <value><![CDATA[Hosted authorization-only checkout via PlugnPay Smart Screens v2 (https://pay1.plugnpay.com/pay/). Card data is collected on PlugnPay (lower PCI scope). Orders are left Pending until settled in PlugnPay Merchant Admin. No Remote Client Password is required.]]></value>
+  </definition>
+  <definition>
+    <key>text_payment</key>
+    <value><![CDATA[Payment]]></value>
+  </definition>
+  <definition>
+    <key>text_success</key>
+    <value><![CDATA[Success: You have modified PlugnPay Smart Screens v2 account details!]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_login</key>
+    <value><![CDATA[Gateway Account:<br /><span class="help">PlugnPay username (pt_gateway_account). There is no public demo account — use merchant credentials.</span>]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_currency</key>
+    <value><![CDATA[Currency Supported:<br /><span class="help">Currency your PlugnPay gateway account accepts. Other store currencies are converted using store exchange rates before submit.</span>]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_currency_USD</key>
+    <value><![CDATA[USD]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_currency_CAD</key>
+    <value><![CDATA[CAD]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_currency_GBP</key>
+    <value><![CDATA[GBP]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_currency_EUR</key>
+    <value><![CDATA[EUR]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_currency_AUD</key>
+    <value><![CDATA[AUD]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_currency_NZD</key>
+    <value><![CDATA[NZD]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_store_data</key>
+    <value><![CDATA[Enable Database Storage:<br /><span class="help">Save sanitized submit/response snapshots to the plugnpay_ss2 table.</span>]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_store_data_1</key>
+    <value><![CDATA[Yes]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_store_data_0</key>
+    <value><![CDATA[No]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_debugging</key>
+    <value><![CDATA[Debug Logging:<br /><span class="help">Writes sanitized logs under the store logs directory (never logs full PAN/CVV/password).</span>]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_debugging_0</key>
+    <value><![CDATA[Off]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_debugging_1</key>
+    <value><![CDATA[Log File]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_location_id</key>
+    <value><![CDATA[Location:]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_location_id_0</key>
+    <value><![CDATA[All Locations]]></value>
+  </definition>
+  <definition>
+    <key>error_permission</key>
+    <value><![CDATA[Warning: You do not have permission to modify payment PlugnPay Smart Screens v2!]]></value>
+  </definition>
+  <definition>
+    <key>error_login</key>
+    <value><![CDATA[Gateway Account Required!]]></value>
+  </definition>
+</definitions>

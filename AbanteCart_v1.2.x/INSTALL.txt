@@ -1,0 +1,25 @@
+====================================================
+PlugnPay Remote API Module (Credit Card Payments)
+Payment Extension for AbanteCart v1.2.x — legacy v1.0.0
+====================================================
+
+***** IMPORTANT NOTES *****
+This is a LEGACY package for AbanteCart 1.2.x.
+For new installs, use AbanteCart 1.4.x:
+  AbanteCart_v1.4.x/abantecart_1.4_api_module.tar.gz
+
+This module is provided "AS IS".
+***************************
+
+To Install:
+
+1. Unzip abantecart_1.2_api_module.zip into your AbanteCart root:
+     extensions/plugnpay_api_cc/...
+
+2. Admin → Extensions → Payments → install/enable
+   "PlugnPay (API CC)".
+
+3. Enter Gateway Account + Remote Client Password.
+
+See:
+  src/extensions/plugnpay_api_cc/README.md

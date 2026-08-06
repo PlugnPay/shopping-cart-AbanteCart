@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package>
+	<id>plugnpay_api_cc</id>
+	<type>extension</type>
+	<version>1.0.0</version>
+	<priority>10</priority>
+	<cartversions>
+		<item>1.4</item>
+	</cartversions>
+	<phpminversion>8.2</phpminversion>
+	<phpmodules>
+		<item>curl</item>
+	</phpmodules>
+	<package_content>
+		<extensions>
+			<extension>plugnpay_api_cc</extension>
+		</extensions>
+	</package_content>
+</package>

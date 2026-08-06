@@ -1,0 +1,13 @@
+PlugnPay Remote API payment extension for AbanteCart
+
+Copyright (c) PlugnPay Technologies
+
+This extension is provided AS IS without warranty of any kind.
+Limited technical support may be available to help diagnose problems
+with this module.
+
+Requires AbanteCart 1.4.x and PHP 8.2+ with cURL.
+
+PCI Notice: This module collects cardholder data on your server, which
+increases PCI DSS scope. Capture, void, and refund are performed in
+PlugnPay Merchant Admin — not from AbanteCart.

@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<definitions>
+  <definition>
+    <key>text_title</key>
+    <value><![CDATA[Credit Card / Debit Card (PlugnPay)]]></value>
+  </definition>
+  <definition>
+    <key>text_credit_card</key>
+    <value><![CDATA[Credit Card Details]]></value>
+  </definition>
+  <definition>
+    <key>text_wait</key>
+    <value><![CDATA[Please wait!]]></value>
+  </definition>
+  <definition>
+    <key>text_close</key>
+    <value><![CDATA[Close]]></value>
+  </definition>
+  <definition>
+    <key>entry_cc_owner</key>
+    <value><![CDATA[Card Holder's Name:]]></value>
+  </definition>
+  <definition>
+    <key>entry_cc_number</key>
+    <value><![CDATA[Card Number:]]></value>
+  </definition>
+  <definition>
+    <key>entry_cc_expire_date</key>
+    <value><![CDATA[Card Expiry Date:]]></value>
+  </definition>
+  <definition>
+    <key>entry_cc_cvv2</key>
+    <value><![CDATA[Card Security Code]]></value>
+  </definition>
+  <definition>
+	<key>entry_cc_cvv2_short</key>
+	<value><![CDATA[(CVV2 ?)]]></value>
+  </definition>
+  <definition>
+	<key>entry_what_cvv2</key>
+	<value><![CDATA[What is CVV2?]]></value>
+  </definition>
+  <definition>
+	<key>error_unknown</key>
+	<value><![CDATA[Unexpected error. Please try again or contact the store.]]></value>
+  </definition>
+  <definition>
+	<key>error_cc_details</key>
+	<value><![CDATA[Please check your credit card information.]]></value>
+  </definition>
+  <definition>
+	<key>error_cc_cvv</key>
+	<value><![CDATA[Please enter a valid CVV number.]]></value>
+  </definition>
+  <definition>
+	<key>error_communication</key>
+	<value><![CDATA[Unable to process payment due to a communications error. You may try again or contact us for assistance.]]></value>
+  </definition>
+  <definition>
+	<key>warning_suspicious</key>
+	<value><![CDATA[Suspicious activity has been detected. Your account will be locked and marked for detailed review.]]></value>
+  </definition>
+  <definition>
+	<key>warning_declined</key>
+	<value><![CDATA[Your credit card could not be authorized. Please correct the information and try again or contact us for further assistance.]]></value>
+  </definition>
+  <definition>
+	<key>warning_fraud</key>
+	<value><![CDATA[Your transaction was rejected. Please contact the merchant for ordering assistance.]]></value>
+  </definition>
+  <definition>
+	<key>warning_suspicious_to_admin</key>
+	<value><![CDATA[Multiple credit card decline attempts]]></value>
+  </definition>
+  <definition>
+	<key>warning_suspicious_to_admin_body</key>
+	<value><![CDATA[Customer account has been deactivated. Click this <b><a href="%s" target="_new">link to see customer details</a></b>]]></value>
+  </definition>
+</definitions>

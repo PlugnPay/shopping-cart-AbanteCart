@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<definitions>
+  <definition>
+    <key>plugnpay_api_cc_name</key>
+    <value><![CDATA[PlugnPay (API CC)]]></value>
+  </definition>
+  <definition>
+    <key>text_payment</key>
+    <value><![CDATA[Payment]]></value>
+  </definition>
+  <definition>
+    <key>text_success</key>
+    <value><![CDATA[Success: You have modified PlugnPay (API CC) account details!]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_method_authorization</key>
+    <value><![CDATA[Authorization]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_method_capture</key>
+    <value><![CDATA[Capture]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_login</key>
+    <value><![CDATA[Gateway Account:]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_key</key>
+    <value><![CDATA[Remote Client Password:]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_server</key>
+    <value><![CDATA[Transaction Server:]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_method</key>
+    <value><![CDATA[Transaction Method:]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_order_status_id</key>
+    <value><![CDATA[Order Status:]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_location_id</key>
+    <value><![CDATA[Location:]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_location_id_0</key>
+    <value><![CDATA[All Locations]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_api_cc_decline_limit</key>
+    <value><![CDATA[Decline attempts limit:<br /><span class="help">Security setting to prevent fraud attacks. If number of sequential declines exceed the limit, customer's account will be locked and message sent to administrator.</span>]]></value>
+  </definition>  
+  <definition>
+    <key>error_permission</key>
+    <value><![CDATA[Warning: You do not have permission to modify payment PlugnPay (API CC)!]]></value>
+  </definition>
+  <definition>
+    <key>error_login</key>
+    <value><![CDATA[Gateway Account Required!]]></value>
+  </definition>
+  <definition>
+    <key>error_key</key>
+    <value><![CDATA[Remote Client Password Required!]]></value>
+  </definition>
+</definitions>

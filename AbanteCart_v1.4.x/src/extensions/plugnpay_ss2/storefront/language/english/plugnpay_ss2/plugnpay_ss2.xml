@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<definitions>
+  <definition>
+    <key>text_title</key>
+    <value><![CDATA[Credit Card (PlugnPay Smart Screens)]]></value>
+  </definition>
+  <definition>
+    <key>text_redirecting</key>
+    <value><![CDATA[Please wait while we connect you to the secure PlugnPay payment page. Do not refresh this page.]]></value>
+  </definition>
+  <definition>
+    <key>error_unknown</key>
+    <value><![CDATA[Unexpected error. Please try again or contact the store.]]></value>
+  </definition>
+  <definition>
+    <key>error_processing</key>
+    <value><![CDATA[There has been an error processing your credit card. Please try again.]]></value>
+  </definition>
+  <definition>
+    <key>error_session</key>
+    <value><![CDATA[Your payment session could not be verified. Please try again or contact us for assistance.]]></value>
+  </definition>
+  <definition>
+    <key>error_amount_mismatch</key>
+    <value><![CDATA[Payment amount did not match the order total. Please try again or contact us for assistance.]]></value>
+  </definition>
+  <definition>
+    <key>error_account_mismatch</key>
+    <value><![CDATA[Payment response did not match this store's gateway account. Please contact us for assistance.]]></value>
+  </definition>
+  <definition>
+    <key>warning_declined</key>
+    <value><![CDATA[Your credit card was declined. Please try another card or contact your bank for more info.]]></value>
+  </definition>
+</definitions>

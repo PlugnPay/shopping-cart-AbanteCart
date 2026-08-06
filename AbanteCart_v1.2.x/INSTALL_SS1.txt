@@ -1,0 +1,20 @@
+====================================================
+PlugnPay Smart Screens v1 (Hosted) — INCOMPLETE
+Payment Extension for AbanteCart v1.2.x — draft
+====================================================
+
+***** IMPORTANT NOTES *****
+This draft is incomplete and NOT recommended for production.
+Prefer AbanteCart 1.4.x Remote API:
+  AbanteCart_v1.4.x/abantecart_1.4_api_module.tar.gz
+***************************
+
+To Install (reference only):
+
+1. Unzip abantecart_1.2_ss1_module.zip into your AbanteCart root:
+     extensions/plugnpay/...
+
+2. Admin → Extensions → Payments → install/enable if available.
+
+See:
+  src/extensions/plugnpay/README.md

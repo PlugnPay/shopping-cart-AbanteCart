@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+<extension>
+    <id>plugnpay_api_cc</id>
+    <version>1.0.0</version>
+	<type>payment</type>
+	<category>payment</category>
+    <cartversions>
+        <item>1.4</item>
+    </cartversions>
+	<dependencies>
+		<item>curl</item>
+	</dependencies>
+    <layout></layout>
+    <priority>10</priority>
+    <settings>
+	    <item id="plugnpay_api_cc_login">
+            <type required="true">input</type>
+            <default_value></default_value>
+        </item>
+	    <item id="plugnpay_api_cc_key">
+            <type required="true">input</type>
+            <default_value></default_value>
+        </item>
+	    <item id="plugnpay_api_cc_pubemail">
+            <type>input</type>
+            <default_value></default_value>
+        </item>
+		<item id="plugnpay_api_cc_authtype">
+            <type>selectbox</type>
+			<variants>
+				<item>authonly</item>
+				<item>authpostauth</item>
+			</variants>
+			<default_value>authonly</default_value>
+        </item>
+		<item id="plugnpay_api_cc_emailcust">
+            <type>selectbox</type>
+			<variants>
+				<item>yes</item>
+				<item>no</item>
+			</variants>
+			<default_value>yes</default_value>
+        </item>
+		<item id="plugnpay_api_cc_use_cvv">
+            <type>selectbox</type>
+			<variants>
+				<item>1</item>
+				<item>0</item>
+			</variants>
+			<default_value>1</default_value>
+        </item>
+	    <item id="plugnpay_api_cc_order_status_id">
+            <type>selectbox</type>
+			<variants>
+				<data_source>
+					<model_rt>localisation/order_status</model_rt>
+					<method>getOrderStatuses</method>
+				</data_source>
+				<fields>
+					<field>order_status_id</field>
+					<field>name</field>
+				</fields>
+			</variants>
+			<default_value>2</default_value>
+        </item>
+	    <item id="plugnpay_api_cc_decline_limit">
+            <type>input</type>
+            <default_value>5</default_value>
+        </item>
+		<item id="plugnpay_api_cc_debugging">
+            <type>selectbox</type>
+			<variants>
+				<item>0</item>
+				<item>1</item>
+			</variants>
+			<default_value>0</default_value>
+        </item>
+	    <item id="plugnpay_api_cc_location_id">
+            <type>selectbox</type>
+			<variants>
+				<item>0</item>
+				<data_source>
+					<model_rt>localisation/location</model_rt>
+					<method>getLocations</method>
+				</data_source>
+				<fields>
+					<field>location_id</field>
+					<field>name</field>
+				</fields>
+			</variants>
+        </item>
+    </settings>
+	<note>true</note>
+	<help_link><![CDATA[https://docs.plugnpay.com/docs/integration-specifications-documents/remote-api-integration-specification/]]></help_link>
+    <install>
+	    <sql></sql>
+	    <trigger></trigger>
+	</install>
+	<uninstall>
+	    <sql></sql>
+	    <trigger></trigger>
+	</uninstall>
+</extension>

@@ -1,0 +1,50 @@
+====================================================
+PlugnPay Remote API Module (Credit Card Payments)
+Payment Extension for AbanteCart v1.4.x — v1.0.0
+====================================================
+
+***** IMPORTANT NOTES *****
+This module is provided "AS IS". Limited technical support assistance
+will be given to help diagnose/address problems with this module.
+
+This module requires SSL and PHP cURL. AbanteCart collects credit card
+information on your store's billing pages. Authorization is performed
+via PlugnPay's Remote API (authonly or authpostauth). Capture, void,
+and refund are performed in PlugnPay Merchant Admin — not from AbanteCart.
+
+Requires AbanteCart 1.4.x and PHP 8.2+.
+
+PCI: Collecting cards onsite increases PCI scope. For hosted (lower
+PCI) checkout, use a PlugnPay Smart Screens module when available.
+***************************
+
+To Install (Admin upload — recommended):
+
+1. Use abantecart_1.4_api_module.tar.gz
+   (AbanteCart requires .tar.gz for package upload — .zip will fail).
+
+2. Admin → Extensions → Install Extension → Extension Upload
+   → browse to abantecart_1.4_api_module.tar.gz → Continue → accept license.
+
+3. Admin → Extensions → Payments → enable "PlugnPay Remote API".
+
+4. Enter Publisher Name + Remote Client Password. Choose Authorization
+   Type (authonly or authpostauth).
+
+Manual FTP install (optional):
+
+1. Copy from the development tree into your AbanteCart root:
+     AbanteCart_v1.4.x/src/extensions/plugnpay_api_cc/
+       → <shop>/extensions/plugnpay_api_cc/
+
+2. Then enable under Admin → Extensions → Payments as above.
+
+See the module README for full documentation, troubleshooting, and a
+manual test checklist:
+  src/extensions/plugnpay_api_cc/README.md
+
+Also see the 1.4.x package overview:
+  AbanteCart_v1.4.x/README.md
+
+Source tree (development):
+  src/extensions/plugnpay_api_cc/

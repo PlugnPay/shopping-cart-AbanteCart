@@ -19,6 +19,7 @@
 ------------------------------------------------------------------------------*/
 if (!defined('DIR_CORE')) {
 	header('Location: static_pages/');
+	exit;
 }
 
 /**
@@ -74,7 +75,7 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 				'value' => $cc_owner_default,
 				'placeholder' => $this->language->get('entry_cc_owner'),
 				'required' => true,
-				'attr' => 'autocomplete="cc-name" id="cc_owner"'
+				'attr' => 'autocomplete="cc-name" id="cc_owner" maxlength="64"'
 			)
 		);
 		$data['entry_cc_number'] = $this->language->get('entry_cc_number');
@@ -84,14 +85,14 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 				'name' => 'cc_number',
 				'placeholder' => $this->language->get('entry_cc_number'),
 				'required' => true,
-				'attr' => 'autocomplete="cc-number" inputmode="numeric" id="cc_number"',
+				'attr' => 'autocomplete="off" inputmode="numeric" maxlength="19" id="cc_number"',
 				'value' => ''
 			)
 		);
 		$data['entry_cc_expire_date'] = $this->language->get('entry_cc_expire_date');
 		$data['entry_cc_cvv2'] = $this->language->get('entry_cc_cvv2');
 		$data['entry_cc_cvv2_short'] = $this->language->get('entry_cc_cvv2_short');
-		$data['cc_cvv2_help_url'] = $this->html->getURL('r/extension/plugnpay_api_cc/cvv2_help');
+		$data['cc_cvv2_help_url'] = $this->html->getSecureURL('r/extension/plugnpay_api_cc/cvv2_help');
 		$data['use_cvv'] = (string)$this->config->get('plugnpay_api_cc_use_cvv') !== '0';
 		$data['cc_cvv2'] = $form->getFieldHtml(
 			array(
@@ -100,7 +101,7 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 				'value' => '',
 				'placeholder' => $this->language->get('entry_cc_cvv2_placeholder'),
 				'required' => $data['use_cvv'],
-				'attr' => 'maxlength="4" autocomplete="cc-csc" inputmode="numeric" id="cc_cvv2"'
+				'attr' => 'maxlength="4" autocomplete="off" inputmode="numeric" id="cc_cvv2"'
 			)
 		);
 		$data['button_confirm'] = $this->language->get('button_confirm');
@@ -186,7 +187,7 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 		$data['entry_cc_expire_date'] = $this->language->get('entry_cc_expire_date');
 		$data['entry_cc_cvv2'] = $this->language->get('entry_cc_cvv2');
 		$data['entry_cc_cvv2_short'] = $this->language->get('entry_cc_cvv2_short');
-		$data['cc_cvv2_help_url'] = $this->html->getURL('r/extension/plugnpay_api_cc/cvv2_help');
+		$data['cc_cvv2_help_url'] = $this->html->getSecureURL('r/extension/plugnpay_api_cc/cvv2_help');
 		$data['use_cvv'] = (string)$this->config->get('plugnpay_api_cc_use_cvv') !== '0';
 
 		$data['cc_cvv2'] = array(
@@ -235,17 +236,24 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 	public function send() {
 		$json = array();
 		$this->loadLanguage('plugnpay_api_cc/plugnpay_api_cc');
+		require_once(DIR_EXT . 'plugnpay_api_cc/core/PnPFilter.php');
 
 		if (!$this->csrftoken->isTokenValid()) {
 			$json['error'] = $this->language->get('error_unknown');
-			$this->attachCsrf($json);
-			$this->outputJson($json);
+			$this->failJson($json);
 			return;
 		}
 
 		if (!$this->request->is_POST()) {
 			$json['error'] = $this->language->get('error_unknown');
-			$this->outputJson($json);
+			$this->failJson($json);
+			return;
+		}
+
+		$server = is_array($this->request->server) ? $this->request->server : array();
+		if (!PnPFilter::isHttpsRequest($server)) {
+			$json['error'] = $this->language->get('error_unknown');
+			$this->failJson($json);
 			return;
 		}
 
@@ -255,36 +263,57 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 
 		if (!$order_info) {
 			$json['error'] = $this->language->get('error_unknown');
+			$this->failJson($json);
+			return;
+		}
+
+		if (!$this->isThisPaymentMethod($order_info)) {
+			$json['error'] = $this->language->get('error_unknown');
+			$this->failJson($json);
+			return;
+		}
+
+		if ((int)$order_info['order_status_id'] !== 0) {
+			$json['success'] = $this->html->getSecureURL('checkout/finalize', '&order_id=' . (int)$order_id);
 			$this->outputJson($json);
 			return;
 		}
 
-		$cc_number = preg_replace('/\D/', '', isset($this->request->post['cc_number']) ? $this->request->post['cc_number'] : '');
-		$exp_month = isset($this->request->post['cc_expire_date_month']) ? sprintf('%02d', (int)$this->request->post['cc_expire_date_month']) : '';
-		$exp_year_full = isset($this->request->post['cc_expire_date_year']) ? preg_replace('/\D/', '', $this->request->post['cc_expire_date_year']) : '';
-		$exp_year = substr($exp_year_full, -2);
-		$cc_cvv = isset($this->request->post['cc_cvv2']) ? (string)$this->request->post['cc_cvv2'] : '';
-		$cc_owner = isset($this->request->post['cc_owner']) ? trim($this->request->post['cc_owner']) : '';
+		$cc_number = PnPFilter::normalizePan(isset($this->request->post['cc_number']) ? $this->request->post['cc_number'] : '');
+		$exp_month = isset($this->request->post['cc_expire_date_month'])
+			&& is_scalar($this->request->post['cc_expire_date_month'])
+			? (int)$this->request->post['cc_expire_date_month']
+			: 0;
+		$exp_year_full = isset($this->request->post['cc_expire_date_year']) ? $this->request->post['cc_expire_date_year'] : '';
+		$cc_cvv = PnPFilter::normalizeCvv(isset($this->request->post['cc_cvv2']) ? $this->request->post['cc_cvv2'] : '');
+		$cc_owner = PnPFilter::sanitizeCardName(isset($this->request->post['cc_owner']) ? $this->request->post['cc_owner'] : '');
 
-		if ($cc_number === '' || strlen($cc_number) < 13 || $exp_month === '00' || $exp_year === '') {
+		if (!PnPFilter::isValidPan($cc_number) || !PnPFilter::isValidExpiry($exp_month, $exp_year_full)) {
 			$json['error'] = $this->language->get('error_cc_details');
-			$this->attachCsrf($json);
-			$this->outputJson($json);
+			$this->failJson($json);
 			return;
 		}
 
 		$use_cvv = (string)$this->config->get('plugnpay_api_cc_use_cvv') !== '0';
-		if ($use_cvv && (strlen($cc_cvv) < 3 || strlen($cc_cvv) > 4)) {
+		if ($use_cvv && !PnPFilter::isValidCvv($cc_cvv)) {
 			$json['error'] = $this->language->get('error_cc_cvv');
-			$this->attachCsrf($json);
-			$this->outputJson($json);
+			$this->failJson($json);
+			return;
+		}
+
+		$amount = PnPFilter::formatAmount(
+			$this->currency->format($order_info['total'], $order_info['currency'], 1.00000, false)
+		);
+		if (PnPFilter::toCents($amount) <= 0) {
+			$json['error'] = $this->language->get('error_unknown');
+			$this->failJson($json);
 			return;
 		}
 
 		require_once(DIR_EXT . 'plugnpay_api_cc/core/PnPLogger.php');
 		require_once(DIR_EXT . 'plugnpay_api_cc/core/PnPApi.php');
 
-		$log_dir = defined('DIR_LOGS') ? DIR_LOGS : (defined('DIR_SYSTEM') ? DIR_SYSTEM . 'logs' : sys_get_temp_dir());
+		$log_dir = defined('DIR_LOGS') ? DIR_LOGS : (defined('DIR_SYSTEM') ? DIR_SYSTEM . 'logs' : '');
 		$debug = (string)$this->config->get('plugnpay_api_cc_debugging') === '1';
 		$logger = new PnPLogger($log_dir, $debug);
 		$api = new PnPApi(
@@ -293,25 +322,32 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 			$logger
 		);
 
-		$fields = $this->buildAuthorizeFields($order_info, $cc_number, $exp_month . '/' . $exp_year, $cc_cvv, $cc_owner);
+		$card_exp = PnPFilter::formatCardExp($exp_month, $exp_year_full);
+		$fields = $this->buildAuthorizeFields($order_info, $cc_number, $card_exp, $cc_cvv, $cc_owner);
 		$response = $api->authorize($fields);
+		unset($cc_number, $cc_cvv, $fields['card-number'], $fields['card-cvv'], $fields);
 
-		if ($api->getCommErrNo() !== 0 || $api->getLastRawResponse() === '') {
+		if ($api->getCommErrNo() !== 0 || $api->getHttpCode() !== 200 || !$api->hasResponse()) {
 			$json['error'] = $this->language->get('error_communication');
 			$this->model_checkout_order->addHistory(
 				$order_id,
 				0,
-				'PlugnPay Remote API communication error: ' . $api->getCommError()
+				'PlugnPay Remote API communication error'
 			);
-			$this->attachCsrf($json);
-			$this->outputJson($json);
+			$this->failJson($json);
 			return;
 		}
 
-		$auth_code = isset($response['auth-code']) ? $response['auth-code'] : (isset($response['auth_code']) ? $response['auth_code'] : '');
-		$txn_id = isset($response['orderID']) ? $response['orderID'] : (isset($response['orderid']) ? $response['orderid'] : '');
-		$avs = isset($response['avs-code']) ? $response['avs-code'] : (isset($response['avs_code']) ? $response['avs_code'] : '');
-		$cvvresp = isset($response['cvvresp']) ? $response['cvvresp'] : '';
+		$auth_code = $this->safeHistoryToken(
+			isset($response['auth-code']) ? $response['auth-code'] : (isset($response['auth_code']) ? $response['auth_code'] : '')
+		);
+		$txn_id = $this->safeHistoryToken(
+			isset($response['orderID']) ? $response['orderID'] : (isset($response['orderid']) ? $response['orderid'] : '')
+		);
+		$avs = $this->safeHistoryToken(
+			isset($response['avs-code']) ? $response['avs-code'] : (isset($response['avs_code']) ? $response['avs_code'] : '')
+		);
+		$cvvresp = $this->safeHistoryToken(isset($response['cvvresp']) ? $response['cvvresp'] : '');
 
 		$message = 'Credit Card payment via PlugnPay Remote API. AUTH: ' . $auth_code
 			. ' TransID/orderID: ' . $txn_id;
@@ -323,7 +359,7 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 			$message .= ' AVS: ' . $avs;
 		}
 		if ($cvvresp !== '') {
-			$message .= ' CVV: ' . $cvvresp;
+			$message .= ' CVVresp: ' . $cvvresp;
 		}
 
 		if ($api->isApproved($response)) {
@@ -332,23 +368,18 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 			$this->model_checkout_order->update($order_id, $order_status_id, $message, false);
 			$json['success'] = $this->html->getSecureURL('checkout/finalize', '&order_id=' . (int)$order_id);
 		} else {
-			$final = isset($response['FinalStatus']) ? (string)$response['FinalStatus'] : '';
-			$gateway_msg = isset($response['MErrMsg']) ? trim((string)$response['MErrMsg']) : '';
-
+			$final = strtolower(trim(isset($response['FinalStatus']) ? (string)$response['FinalStatus'] : ''));
 			if ($final === 'fraud') {
 				$customer_msg = $this->language->get('warning_fraud');
 			} else {
 				$customer_msg = $this->language->get('warning_declined');
 			}
-			if ($gateway_msg !== '') {
-				$customer_msg .= ' -- ' . $gateway_msg;
-			}
 
-			// Decline limit / lockout (AbanteCart-specific fraud guard)
 			if ($final === 'badcard' || $final === 'fraud') {
-				$this->session->data['decline_count'] = (isset($this->session->data['decline_count']) ? (int)$this->session->data['decline_count'] : 0) + 1;
+				$decline_key = 'plugnpay_api_cc_decline_' . $order_id;
+				$this->session->data[$decline_key] = (isset($this->session->data[$decline_key]) ? (int)$this->session->data[$decline_key] : 0) + 1;
 				$decline_limit = $this->config->get('plugnpay_api_cc_decline_limit');
-				if (has_value($decline_limit) && $this->session->data['decline_count'] > (int)$decline_limit) {
+				if (has_value($decline_limit) && $this->session->data[$decline_key] > (int)$decline_limit) {
 					$customer_msg = $this->language->get('warning_suspicious');
 					$this->loadModel('account/customer');
 					$customer_id = $this->customer->getId();
@@ -365,10 +396,11 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 			}
 
 			$json['error'] = $customer_msg;
+			$history_final = $this->safeHistoryToken($final);
 			$this->model_checkout_order->addHistory(
 				$order_id,
 				0,
-				'Credit card declined/error: ' . $customer_msg . ' | ' . $message
+				'Credit card declined/error. FinalStatus: ' . $history_final . ' | ' . $message
 			);
 			$this->attachCsrf($json);
 		}
@@ -444,17 +476,22 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 	 * @return array
 	 */
 	protected function buildAuthorizeFields($order_info, $cc_number, $card_exp, $cc_cvv, $cc_owner) {
-		$amount = $this->currency->format($order_info['total'], $order_info['currency'], 1.00000, false);
-		$amount = number_format((float)$amount, 2, '.', '');
+		$amount = PnPFilter::formatAmount(
+			$this->currency->format($order_info['total'], $order_info['currency'], 1.00000, false)
+		);
+		$currency = !empty($order_info['currency'])
+			? PnPFilter::clip(preg_replace('/[^A-Za-z]/', '', (string)$order_info['currency']), 3)
+			: '';
 
 		$card_name = $cc_owner !== ''
 			? $cc_owner
-			: trim(html_entity_decode($order_info['payment_firstname'], ENT_QUOTES, 'UTF-8') . ' '
-				. html_entity_decode($order_info['payment_lastname'], ENT_QUOTES, 'UTF-8'));
+			: PnPFilter::sanitizeCardName(
+				trim((string)$order_info['payment_firstname'] . ' ' . (string)$order_info['payment_lastname'])
+			);
 
 		$billing_country = !empty($order_info['payment_iso_code_2'])
-			? $order_info['payment_iso_code_2']
-			: html_entity_decode($order_info['payment_country'], ENT_QUOTES, 'UTF-8');
+			? PnPFilter::sanitizeCountry($order_info['payment_iso_code_2'])
+			: PnPFilter::sanitizeCountry($order_info['payment_country']);
 
 		$fields = array(
 			'mode' => 'auth',
@@ -463,25 +500,25 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 			'easycart' => '1',
 			'shipinfo' => '1',
 			'card-amount' => $amount,
-			'currency' => $this->currency->getCode(),
+			'currency' => $currency,
 			'card-number' => $cc_number,
 			'card-exp' => $card_exp,
 			'card-name' => $card_name,
-			'card-company' => html_entity_decode($order_info['payment_company'], ENT_QUOTES, 'UTF-8'),
-			'card-address1' => html_entity_decode($order_info['payment_address_1'], ENT_QUOTES, 'UTF-8'),
-			'card-address2' => html_entity_decode($order_info['payment_address_2'], ENT_QUOTES, 'UTF-8'),
-			'card-city' => html_entity_decode($order_info['payment_city'], ENT_QUOTES, 'UTF-8'),
-			'card-state' => html_entity_decode($order_info['payment_zone'], ENT_QUOTES, 'UTF-8'),
-			'card-zip' => html_entity_decode($order_info['payment_postcode'], ENT_QUOTES, 'UTF-8'),
+			'card-company' => PnPFilter::sanitizeText($order_info['payment_company'], 64),
+			'card-address1' => PnPFilter::sanitizeText($order_info['payment_address_1']),
+			'card-address2' => PnPFilter::sanitizeText($order_info['payment_address_2']),
+			'card-city' => PnPFilter::sanitizeText($order_info['payment_city'], 64),
+			'card-state' => PnPFilter::sanitizeText($order_info['payment_zone'], 64),
+			'card-zip' => PnPFilter::sanitizeText($order_info['payment_postcode'], 16),
 			'card-country' => $billing_country,
-			'phone' => $order_info['telephone'],
-			'email' => $order_info['email'],
-			'ipaddress' => $this->request->getRemoteIP(),
-			'acct_code' => (string)$order_info['order_id'],
+			'phone' => PnPFilter::sanitizePhone($order_info['telephone']),
+			'email' => PnPFilter::sanitizeEmail($order_info['email']),
+			'ipaddress' => PnPFilter::clip((string)$this->request->getRemoteIP(), 45),
+			'acct_code' => (string)(int)$order_info['order_id'],
 			'dontsndmail' => ((string)$this->config->get('plugnpay_api_cc_emailcust') === 'no') ? 'no' : 'yes',
 		);
 
-		$pubemail = trim((string)$this->config->get('plugnpay_api_cc_pubemail'));
+		$pubemail = PnPFilter::sanitizeEmail((string)$this->config->get('plugnpay_api_cc_pubemail'));
 		if ($pubemail !== '') {
 			$fields['publisher-email'] = $pubemail;
 			$fields['notify-email'] = $pubemail;
@@ -491,20 +528,18 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 			$fields['card-cvv'] = $cc_cvv;
 		}
 
-		// Shipping
 		if (!empty($order_info['shipping_lastname']) || !empty($order_info['shipping_address_1'])) {
-			$fields['shipname'] = trim(
-				html_entity_decode($order_info['shipping_firstname'], ENT_QUOTES, 'UTF-8') . ' '
-				. html_entity_decode($order_info['shipping_lastname'], ENT_QUOTES, 'UTF-8')
+			$fields['shipname'] = PnPFilter::sanitizeCardName(
+				trim((string)$order_info['shipping_firstname'] . ' ' . (string)$order_info['shipping_lastname'])
 			);
-			$fields['address1'] = html_entity_decode($order_info['shipping_address_1'], ENT_QUOTES, 'UTF-8');
-			$fields['address2'] = html_entity_decode($order_info['shipping_address_2'], ENT_QUOTES, 'UTF-8');
-			$fields['city'] = html_entity_decode($order_info['shipping_city'], ENT_QUOTES, 'UTF-8');
-			$fields['state'] = html_entity_decode($order_info['shipping_zone'], ENT_QUOTES, 'UTF-8');
-			$fields['zip'] = html_entity_decode($order_info['shipping_postcode'], ENT_QUOTES, 'UTF-8');
+			$fields['address1'] = PnPFilter::sanitizeText($order_info['shipping_address_1']);
+			$fields['address2'] = PnPFilter::sanitizeText($order_info['shipping_address_2']);
+			$fields['city'] = PnPFilter::sanitizeText($order_info['shipping_city'], 64);
+			$fields['state'] = PnPFilter::sanitizeText($order_info['shipping_zone'], 64);
+			$fields['zip'] = PnPFilter::sanitizeText($order_info['shipping_postcode'], 16);
 			$fields['country'] = !empty($order_info['shipping_iso_code_2'])
-				? $order_info['shipping_iso_code_2']
-				: html_entity_decode($order_info['shipping_country'], ENT_QUOTES, 'UTF-8');
+				? PnPFilter::sanitizeCountry($order_info['shipping_iso_code_2'])
+				: PnPFilter::sanitizeCountry($order_info['shipping_country']);
 		} else {
 			$fields['shipname'] = $card_name;
 			$fields['address1'] = $fields['card-address1'];
@@ -515,40 +550,67 @@ class ControllerResponsesExtensionPlugnpayApiCc extends AController {
 			$fields['country'] = $fields['card-country'];
 		}
 
-		if ((float)$amount <= 0) {
-			$fields['mode'] = 'checkcard';
-			unset($fields['card-amount']);
-		}
-
-		// Line items
 		$products = $this->cart->getProducts();
 		if (is_array($products) && !empty($products)) {
 			$j = 1;
 			foreach ($products as $product) {
-				$fields['item' . $j] = isset($product['product_id']) ? (string)$product['product_id'] : '';
-				$fields['cost' . $j] = number_format(
-					(float)$this->currency->format($product['price'], $order_info['currency'], 1.00000, false),
-					2,
-					'.',
-					''
+				if ($j > PnPFilter::LINE_ITEM_MAX) {
+					break;
+				}
+				$qty = isset($product['quantity']) ? (int)$product['quantity'] : 1;
+				if ($qty < 1) {
+					$qty = 1;
+				}
+				$fields['item' . $j] = PnPFilter::clip((string)(isset($product['product_id']) ? $product['product_id'] : ''), 32);
+				$fields['cost' . $j] = PnPFilter::formatAmount(
+					$this->currency->format($product['price'], $order_info['currency'], 1.00000, false)
 				);
-				$fields['quantity' . $j] = isset($product['quantity']) ? (string)$product['quantity'] : '1';
-				$fields['description' . $j] = substr(strip_tags(isset($product['name']) ? $product['name'] : ''), 0, 255);
+				$fields['quantity' . $j] = (string)$qty;
+				$fields['description' . $j] = PnPFilter::sanitizeText(
+					isset($product['name']) ? $product['name'] : '',
+					PnPFilter::DESC_MAX
+				);
 				$j++;
 			}
 		}
 
-		return $fields;
+		return PnPFilter::allowlistAuthorizeFields($fields);
+	}
+
+	/**
+	 * @param array $order_info
+	 * @return bool
+	 */
+	protected function isThisPaymentMethod(array $order_info) {
+		return isset($order_info['payment_method_key'])
+			&& (string)$order_info['payment_method_key'] === 'plugnpay_api_cc';
+	}
+
+	/**
+	 * @param mixed $value
+	 * @return string
+	 */
+	protected function safeHistoryToken($value) {
+		if (!is_scalar($value)) {
+			return '';
+		}
+		return preg_replace('/[^A-Za-z0-9\-_]/', '', PnPFilter::clip((string)$value, 64));
+	}
+
+	/**
+	 * @param array $json
+	 */
+	protected function failJson(array $json) {
+		$this->attachCsrf($json);
+		$this->outputJson($json);
 	}
 
 	/**
 	 * @param array $json
 	 */
 	protected function attachCsrf(&$json) {
-		if (isset($json['error']) && $json['error']) {
-			$csrftoken = $this->registry->get('csrftoken');
-			$json['csrfinstance'] = $csrftoken->setInstance();
-			$json['csrftoken'] = $csrftoken->setToken();
-		}
+		$csrftoken = $this->registry->get('csrftoken');
+		$json['csrfinstance'] = $csrftoken->setInstance();
+		$json['csrftoken'] = $csrftoken->setToken();
 	}
 }

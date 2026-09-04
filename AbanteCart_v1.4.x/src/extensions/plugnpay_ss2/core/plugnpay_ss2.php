@@ -1,6 +1,7 @@
 <?php
 if (!defined('DIR_CORE')) {
 	header('Location: static_pages/');
+	exit;
 }
 
 class ExtensionPlugnpaySs2 extends Extension {
@@ -13,7 +14,9 @@ class ExtensionPlugnpaySs2 extends Extension {
 
 	public function onControllerPagesExtensionExtensions_UpdateData() {
 		$that = $this->baseObject;
-		$current_ext_id = $that->request->get['extension'];
+		$current_ext_id = isset($that->request->get['extension']) && is_scalar($that->request->get['extension'])
+			? (string)$that->request->get['extension']
+			: '';
 		if (IS_ADMIN && $current_ext_id == 'plugnpay_ss2' && $this->baseObject_method == 'edit') {
 			$html = '<a class="btn btn-white tooltips" target="_blank" href="https://www.plugnpay.com/" title="Visit PlugnPay.com">
 	    				<i class="fa fa-external-link fa-lg"></i>

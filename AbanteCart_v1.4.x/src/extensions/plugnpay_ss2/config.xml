@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <extension>
 	<id>plugnpay_ss2</id>
-	<version>1.0.1</version>
+	<version>1.0.3</version>
 	<type>payment</type>
 	<category>payment</category>
 	<cartversions>
@@ -12,6 +12,10 @@
 	<settings>
 		<item id="plugnpay_ss2_login">
 			<type required="true">input</type>
+			<default_value></default_value>
+		</item>
+		<item id="plugnpay_ss2_response_hash">
+			<type required="true">password</type>
 			<default_value></default_value>
 		</item>
 		<item id="plugnpay_ss2_currency">
@@ -32,7 +36,7 @@
 				<item>1</item>
 				<item>0</item>
 			</variants>
-			<default_value>1</default_value>
+			<default_value>0</default_value>
 		</item>
 		<item id="plugnpay_ss2_debugging">
 			<type>selectbox</type>

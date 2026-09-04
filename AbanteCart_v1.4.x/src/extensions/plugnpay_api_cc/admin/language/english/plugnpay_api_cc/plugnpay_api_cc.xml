@@ -78,7 +78,7 @@
   </definition>
   <definition>
     <key>plugnpay_api_cc_debugging</key>
-    <value><![CDATA[Debug Logging:<br /><span class="help">Writes sanitized gateway logs under the store logs directory (never logs full PAN/CVV/password).</span>]]></value>
+    <value><![CDATA[Debug Logging:<br /><span class="help">Writes allowlisted gateway logs under the store logs directory. Never logs PAN, CVV, expiry, or passwords (including last-4). Leave Off in production.</span>]]></value>
   </definition>
   <definition>
     <key>plugnpay_api_cc_location_id</key>

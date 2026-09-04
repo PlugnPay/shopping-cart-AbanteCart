@@ -6,7 +6,7 @@
   </definition>
   <definition>
     <key>plugnpay_ss2_note</key>
-    <value><![CDATA[Hosted authorization-only checkout via PlugnPay Smart Screens v2 (https://pay1.plugnpay.com/pay/). Card data is collected on PlugnPay (lower PCI scope). Orders are left Pending until settled in PlugnPay Merchant Admin. No Remote Client Password is required.]]></value>
+    <value><![CDATA[Hosted authorization-only checkout via PlugnPay Smart Screens v2 (https://pay1.plugnpay.com/pay/). Card data is collected on PlugnPay (lower PCI scope). Orders are left Pending until settled in PlugnPay Merchant Admin. A server-only Response Verification Hash is required.]]></value>
   </definition>
   <definition>
     <key>text_payment</key>
@@ -19,6 +19,10 @@
   <definition>
     <key>plugnpay_ss2_login</key>
     <value><![CDATA[Gateway Account:<br /><span class="help">PlugnPay username (pt_gateway_account). There is no public demo account — use merchant credentials.</span>]]></value>
+  </definition>
+  <definition>
+    <key>plugnpay_ss2_response_hash</key>
+    <value><![CDATA[Response Verification Hash:<br /><span class="help">Server-only outbound verification secret from PlugnPay Security Administration. Configure SHA-256 when available. Never expose or log this value.</span>]]></value>
   </definition>
   <definition>
     <key>plugnpay_ss2_currency</key>
@@ -50,7 +54,7 @@
   </definition>
   <definition>
     <key>plugnpay_ss2_store_data</key>
-    <value><![CDATA[Enable Database Storage:<br /><span class="help">Save sanitized submit/response snapshots to the plugnpay_ss2 table.</span>]]></value>
+    <value><![CDATA[Enable Database Storage:<br /><span class="help">Save allowlisted status/amount/auth snapshots to the plugnpay_ss2 table. Default No. Does not store full POST, PAN, or session ids.</span>]]></value>
   </definition>
   <definition>
     <key>plugnpay_ss2_store_data_1</key>
@@ -62,7 +66,7 @@
   </definition>
   <definition>
     <key>plugnpay_ss2_debugging</key>
-    <value><![CDATA[Debug Logging:<br /><span class="help">Writes sanitized logs under the store logs directory (never logs full PAN/CVV/password).</span>]]></value>
+    <value><![CDATA[Debug Logging:<br /><span class="help">Writes allowlisted logs under the store logs directory. Never logs PAN/CVV/passwords/return tokens. Leave Off in production.</span>]]></value>
   </definition>
   <definition>
     <key>plugnpay_ss2_debugging_0</key>
@@ -87,5 +91,9 @@
   <definition>
     <key>error_login</key>
     <value><![CDATA[Gateway Account Required!]]></value>
+  </definition>
+  <definition>
+    <key>error_response_hash</key>
+    <value><![CDATA[Response Verification Hash Required!]]></value>
   </definition>
 </definitions>

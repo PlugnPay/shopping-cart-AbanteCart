@@ -132,7 +132,9 @@
 				}
 				if (data.error) {
 					clearWait($form);
-					$form.before('<div class="alert alert-warning"><i class="fa fa-exclamation"></i> ' + data.error + '</div>');
+					var $alert = jQuery('<div class="alert alert-warning"><i class="fa fa-exclamation"></i> </div>');
+					$alert.append(document.createTextNode(String(data.error)));
+					$form.before($alert);
 					if (data.csrfinstance) {
 						$form.find('input[name=csrfinstance]').val(data.csrfinstance);
 					}
@@ -148,13 +150,9 @@
 				clearWait($form);
 				$form.before('<div class="alert alert-danger"><i class="fa fa-bug"></i> <?php echo $error_unknown; ?></div>');
 			},
-			error: function (jqXHR, textStatus, errorThrown) {
+			error: function () {
 				clearWait($form);
-				var detail = textStatus + (errorThrown ? (' ' + errorThrown) : '');
-				if (jqXHR && jqXHR.status) {
-					detail += ' (HTTP ' + jqXHR.status + ')';
-				}
-				$form.before('<div class="alert alert-danger"><i class="fa fa-exclamation"></i> ' + detail + '</div>');
+				$form.before('<div class="alert alert-danger"><i class="fa fa-exclamation"></i> <?php echo $error_unknown; ?></div>');
 			}
 		});
 	}

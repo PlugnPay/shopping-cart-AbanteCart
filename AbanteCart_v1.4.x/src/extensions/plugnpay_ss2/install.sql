@@ -9,7 +9,6 @@ CREATE TABLE IF NOT EXISTS `ac_plugnpay_ss2` (
   `sent` text,
   `received` text,
   `time` varchar(255) NOT NULL default '',
-  `session_id` varchar(255) NOT NULL default '',
   PRIMARY KEY (`id`),
   KEY `idx_customer_id` (`customer_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;

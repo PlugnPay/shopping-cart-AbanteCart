@@ -8,6 +8,7 @@
  */
 if (!defined('DIR_CORE')) {
 	header('Location: static_pages/');
+	exit;
 }
 
 class PnPApi {
@@ -21,6 +22,8 @@ class PnPApi {
 	private $commErrNo = 0;
 	private $commError = '';
 	private $commInfo = array();
+	private $httpCode = 0;
+	private $responseReceived = false;
 
 	/**
 	 * @param string         $publisherName
@@ -41,6 +44,13 @@ class PnPApi {
 	}
 
 	/**
+	 * @return bool
+	 */
+	public function hasResponse() {
+		return $this->responseReceived;
+	}
+
+	/**
 	 * @return string
 	 */
 	public function getCommError() {
@@ -52,6 +62,13 @@ class PnPApi {
 	 */
 	public function getCommErrNo() {
 		return (int)$this->commErrNo;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getHttpCode() {
+		return (int)$this->httpCode;
 	}
 
 	/**
@@ -82,10 +99,10 @@ class PnPApi {
 	 * @return bool
 	 */
 	public function isApproved(array $response) {
-		$final = strtolower(isset($response['FinalStatus']) ? (string)$response['FinalStatus'] : '');
-		$success = strtolower(isset($response['success']) ? (string)$response['success'] : '');
-
-		return ($final === 'success' || $success === 'yes');
+		if (!class_exists('PnPFilter', false)) {
+			require_once(dirname(__FILE__) . '/PnPFilter.php');
+		}
+		return PnPFilter::isApproved($response);
 	}
 
 	/**
@@ -93,10 +110,18 @@ class PnPApi {
 	 * @return array
 	 */
 	public function request(array $fields) {
+		if (!class_exists('PnPFilter', false)) {
+			require_once(dirname(__FILE__) . '/PnPFilter.php');
+		}
+
+		$this->responseReceived = false;
+		$this->lastRawResponse = '';
+
 		if (!function_exists('curl_init')) {
 			$this->commErrNo = -1;
 			$this->commError = 'PHP cURL extension is not available';
 			$this->lastRawResponse = '';
+			$this->httpCode = 0;
 			if ($this->logger) {
 				$this->logger->log('cURL missing', array('error' => $this->commError));
 			}
@@ -111,6 +136,9 @@ class PnPApi {
 			'publisher-name' => $this->publisherName,
 			'publisher-password' => $this->publisherPassword,
 		), $fields);
+		$payload = PnPFilter::allowlistAuthorizeFields($payload);
+		$payload['publisher-name'] = $this->publisherName;
+		$payload['publisher-password'] = $this->publisherPassword;
 
 		foreach ($payload as $key => $value) {
 			if ($value === null || $value === '') {
@@ -123,7 +151,11 @@ class PnPApi {
 		if ($this->logger) {
 			$this->logger->log('Request to PlugnPay', array(
 				'endpoint' => self::ENDPOINT,
-				'fields' => $payload,
+				'mode' => isset($payload['mode']) ? $payload['mode'] : '',
+				'authtype' => isset($payload['authtype']) ? $payload['authtype'] : '',
+				'card-amount' => isset($payload['card-amount']) ? $payload['card-amount'] : '',
+				'currency' => isset($payload['currency']) ? $payload['currency'] : '',
+				'acct_code' => isset($payload['acct_code']) ? $payload['acct_code'] : '',
 			));
 		}
 
@@ -135,6 +167,13 @@ class PnPApi {
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+		if (defined('CURL_SSLVERSION_TLSv1_2')) {
+			curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
+		}
+		if (defined('CURLPROTO_HTTPS')) {
+			curl_setopt($ch, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS);
+			curl_setopt($ch, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTPS);
+		}
 		curl_setopt($ch, CURLOPT_HTTPHEADER, array(
 			'Content-Type: application/x-www-form-urlencoded',
 		));
@@ -144,41 +183,33 @@ class PnPApi {
 		$this->commError = (string)curl_error($ch);
 		$info = curl_getinfo($ch);
 		$this->commInfo = is_array($info) ? $info : array();
+		$this->httpCode = isset($info['http_code']) ? (int)$info['http_code'] : 0;
 		curl_close($ch);
 
 		$this->lastRawResponse = is_string($raw) ? $raw : '';
 
-		if ($this->lastRawResponse === '' || $this->commErrNo !== 0) {
+		if ($this->lastRawResponse === '' || $this->commErrNo !== 0 || $this->httpCode !== 200) {
 			$response = array(
 				'FinalStatus' => 'problem',
 				'success' => 'no',
-				'MErrMsg' => $this->commError !== ''
-					? $this->commError
-					: 'Empty response from PlugnPay (check cURL connectivity / firewall)',
+				'MErrMsg' => 'Empty or invalid response from PlugnPay',
 			);
 			if ($this->logger) {
 				$this->logger->log('Communication failure', array(
 					'errno' => $this->commErrNo,
-					'error' => $this->commError,
-					'info' => $this->commInfo,
+					'http_code' => $this->httpCode,
 				));
 			}
+			$this->lastRawResponse = '';
 			return $response;
 		}
 
 		$response = $this->parseResponse($this->lastRawResponse);
+		$this->responseReceived = true;
+		$this->lastRawResponse = '';
 
 		if ($this->logger) {
-			$this->logger->log('Response from PlugnPay', array(
-				'FinalStatus' => isset($response['FinalStatus']) ? $response['FinalStatus'] : '',
-				'success' => isset($response['success']) ? $response['success'] : '',
-				'orderID' => isset($response['orderID']) ? $response['orderID'] : (isset($response['orderid']) ? $response['orderid'] : ''),
-				'auth-code' => isset($response['auth-code']) ? $response['auth-code'] : (isset($response['auth_code']) ? $response['auth_code'] : ''),
-				'resp-code' => isset($response['resp-code']) ? $response['resp-code'] : (isset($response['resp_code']) ? $response['resp_code'] : ''),
-				'MErrMsg' => isset($response['MErrMsg']) ? $response['MErrMsg'] : '',
-				'avs-code' => isset($response['avs-code']) ? $response['avs-code'] : (isset($response['avs_code']) ? $response['avs_code'] : ''),
-				'cvvresp' => isset($response['cvvresp']) ? $response['cvvresp'] : '',
-			));
+			$this->logger->log('Response from PlugnPay', PnPFilter::loggableResponse($response));
 		}
 
 		return $response;
@@ -191,16 +222,9 @@ class PnPApi {
 	private function parseResponse($raw) {
 		$parsed = array();
 		parse_str($raw, $parsed);
-
-		$out = array();
-		foreach ($parsed as $key => $value) {
-			if (is_array($value)) {
-				$out[(string)$key] = implode(',', $value);
-			} else {
-				$out[(string)$key] = (string)$value;
-			}
+		if (!is_array($parsed)) {
+			$parsed = array();
 		}
-
-		return $out;
+		return PnPFilter::allowlistResponse($parsed);
 	}
 }

@@ -1,27 +1,15 @@
 <?php
 /**
- * PlugnPay Smart Screens v2 debug logger with secret redaction.
+ * PlugnPay Smart Screens v2 debug logger. Never stores PAN, SAD, or passwords.
  *
  * PHP 8.2+ / AbanteCart 1.4.x.
  */
 if (!defined('DIR_CORE')) {
 	header('Location: static_pages/');
+	exit;
 }
 
 class PnPSs2Logger {
-	/** @var array */
-	private static $sensitiveKeys = array(
-		'card-number',
-		'card_number',
-		'card-cvv',
-		'card_cvv',
-		'publisher-password',
-		'publisher_password',
-		'pt_card_number',
-		'cc_number',
-		'cc_cvv',
-	);
-
 	private $logDir;
 	private $enabled;
 
@@ -31,7 +19,10 @@ class PnPSs2Logger {
 	 */
 	public function __construct($logDir, $enabled = false) {
 		$this->logDir = rtrim((string)$logDir, '/\\');
-		$this->enabled = (bool)$enabled;
+		$this->enabled = (bool)$enabled
+			&& $this->logDir !== ''
+			&& is_dir($this->logDir)
+			&& is_writable($this->logDir);
 	}
 
 	/**
@@ -52,12 +43,19 @@ class PnPSs2Logger {
 
 		$line = date('Y-m-d H:i:s') . ' ' . $message;
 		if (!empty($context)) {
-			$line .= "\n" . print_r($this->sanitize($context), true);
+			if (!class_exists('PnPSs2Filter', false)) {
+				require_once(dirname(__FILE__) . '/PnPSs2Filter.php');
+			}
+			$line .= "\n" . print_r(PnPSs2Filter::redact($context), true);
 		}
 		$line .= "\n----------------------------------------\n";
 
 		$file = $this->logDir . '/plugnpay_ss2_' . date('Ymd') . '.log';
+		$created = !is_file($file);
 		@file_put_contents($file, $line, FILE_APPEND | LOCK_EX);
+		if ($created && is_file($file)) {
+			@chmod($file, 0600);
+		}
 	}
 
 	/**
@@ -65,37 +63,9 @@ class PnPSs2Logger {
 	 * @return array
 	 */
 	public function sanitize(array $data) {
-		$out = array();
-		foreach ($data as $key => $value) {
-			$keyStr = (string)$key;
-			if ($this->isSensitiveKey($keyStr)) {
-				if (stripos($keyStr, 'number') !== false && is_string($value) && strlen($value) >= 4) {
-					$out[$key] = str_repeat('X', max(0, strlen($value) - 4)) . substr($value, -4);
-				} else {
-					$out[$key] = '***REDACTED***';
-				}
-				continue;
-			}
-			if (is_array($value)) {
-				$out[$key] = $this->sanitize($value);
-			} else {
-				$out[$key] = $value;
-			}
+		if (!class_exists('PnPSs2Filter', false)) {
+			require_once(dirname(__FILE__) . '/PnPSs2Filter.php');
 		}
-		return $out;
-	}
-
-	/**
-	 * @param string $key
-	 * @return bool
-	 */
-	private function isSensitiveKey($key) {
-		$normalized = strtolower(str_replace('_', '-', $key));
-		foreach (self::$sensitiveKeys as $sensitive) {
-			if ($normalized === strtolower(str_replace('_', '-', $sensitive))) {
-				return true;
-			}
-		}
-		return false;
+		return PnPSs2Filter::redact($data);
 	}
 }

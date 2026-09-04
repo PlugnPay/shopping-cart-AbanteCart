@@ -1,6 +1,6 @@
 <?php echo $form['form_open']; ?>
 <?php if (!empty($error)) { ?>
-<div class="alert alert-danger"><i class="fa fa-exclamation"></i> <?php echo $error; ?></div>
+<div class="alert alert-danger"><i class="fa fa-exclamation"></i> <?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></div>
 <?php } else { ?>
 <div class="wait alert alert-info text-center">
 	<i class="fa fa-refresh fa-spin"></i> <?php echo $text_redirecting; ?>

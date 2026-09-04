@@ -1,6 +1,6 @@
 ====================================================
 PlugnPay Smart Screens v2 Module (Hosted Payments)
-Payment Extension for AbanteCart v1.4.x — v1.0.1
+Payment Extension for AbanteCart v1.4.x — v1.0.3
 ====================================================
 
 ***** IMPORTANT NOTES *****
@@ -18,6 +18,15 @@ Merchant Admin — not from AbanteCart.
 Requires AbanteCart 1.4.x and PHP 8.2+.
 There is no public demo gateway account. Use merchant-supplied
 credentials from your PlugnPay account.
+
+v1.0.3 notes (authenticated gateway return):
+- Callback requires PlugnPay's server-secret Response Verification Hash
+  (configure SHA-256 when available)
+- Session IDs are not placed in callback URLs
+- Payment method, amount, currency, account, and one-time session binding
+  all fail closed
+If you previously installed v1.0.2, re-upload this package and configure
+the Response Verification Hash before re-enabling the payment method.
 
 v1.0.1 notes (AbanteCart 1.4.x routing):
 - Return URL uses rt=r/extension/plugnpay_ss2/callback
@@ -37,10 +46,16 @@ To Install (Admin upload — recommended):
 
 3. Admin → Extensions → Payments → enable "PlugnPay Smart Screens v2".
 
-4. Enter Gateway Account. Configure currency, database storage, and
-   debug logging as needed.
+4. In PlugnPay Security Administration, enable the outbound Response
+   Verification Hash and choose SHA-256 when available.
 
-5. Place a test order using your merchant account / PlugnPay test
+5. Enter Gateway Account and the matching Response Verification Hash.
+   Configure currency, database storage, and debug logging as needed.
+
+6. Ensure the secure session cookie uses SameSite=None for the cross-site
+   POST return. Do not pass session IDs in callback URLs.
+
+7. Place a test order using your merchant account / PlugnPay test
    procedures. After approval you should land on checkout/finalize.
 
 Manual FTP install (optional):

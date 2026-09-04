@@ -1,6 +1,6 @@
 # AbanteCart 1.4.x — PlugnPay Payment Modules
 
-Extension packages for AbanteCart **1.4.x** (target **1.4.4**). Current packages: Remote API **v1.0.1**, Smart Screens v2 **v1.0.1**.
+Extension packages for AbanteCart **1.4.x** (target **1.4.4**). Current packages: Remote API **v1.0.3**, Smart Screens v2 **v1.0.3**.
 
 Install through Admin → **Extensions** → **Install Extension** (`.tar.gz` upload), then enable under Admin → **Extensions** → **Payments**.
 
@@ -24,22 +24,22 @@ You may install both extensions; enable only the payment method(s) you need unde
 - Source: [src/extensions/plugnpay_api_cc/](./src/extensions/plugnpay_api_cc/)
 - Full docs: [src/extensions/plugnpay_api_cc/README.md](./src/extensions/plugnpay_api_cc/README.md)
 - Quick install: [INSTALL.txt](./INSTALL.txt)
-- Package version: **v1.0.1**
+- Package version: **v1.0.3**
 
 Collects card data on your storefront (fast-checkout friendly stacked form) and posts from the server to PlugnPay Remote API (`authonly` or `authpostauth`). On approval the customer is sent to **`checkout/finalize`**. Capture / void / refund are done in PlugnPay Merchant Admin.
 
-If upgrading from API **v1.0.0**, re-upload `abantecart_1.4_api_module.tar.gz` so the form layout, Confirm submit fix, and finalize redirect are applied.
+If upgrading from API **v1.0.2 or older**, re-upload `abantecart_1.4_api_module.tar.gz` so the stricter card-field, amount, and payment-method validation is applied.
 
 ## Smart Screens v2 (hosted)
 
 - Source: [src/extensions/plugnpay_ss2/](./src/extensions/plugnpay_ss2/)
 - Full docs: [src/extensions/plugnpay_ss2/README.md](./src/extensions/plugnpay_ss2/README.md)
 - Quick install: [INSTALL_SS2.txt](./INSTALL_SS2.txt)
-- Package version: **v1.0.1**
+- Package version: **v1.0.3**
 
-Redirects customers to PlugnPay hosted Smart Screens. Return POST hits `rt=r/extension/plugnpay_ss2/callback`, then completes the AbanteCart order as **Pending** and sends the customer to **`checkout/finalize`** (authorization-only). Capture / void / refund are done in PlugnPay Merchant Admin, not from AbanteCart.
+Redirects customers to PlugnPay hosted Smart Screens. An authenticated return POST hits `rt=r/extension/plugnpay_ss2/callback`, then completes the AbanteCart order as **Pending** and sends the customer to **`checkout/finalize`** (authorization-only). A server-only PlugnPay Response Verification Hash is required; SHA-256 is preferred. Capture / void / refund are done in PlugnPay Merchant Admin, not from AbanteCart.
 
-If upgrading from SS2 **v1.0.0**, re-upload `abantecart_1.4_ss2_module.tar.gz` so the return route and finalize redirect are applied.
+If upgrading from SS2 **v1.0.2 or older**, re-upload `abantecart_1.4_ss2_module.tar.gz`, configure the Response Verification Hash, and verify secure `SameSite=None` session cookies before re-enabling the method.
 
 ## Common install steps (both)
 
@@ -66,6 +66,7 @@ AbanteCart_v1.4.x/
   package_ss2.xml / license_ss2.txt
   abantecart_1.4_api_module.tar.gz
   abantecart_1.4_ss2_module.tar.gz
+  tests/run.php               # php tests/run.php
   src/extensions/
     plugnpay_api_cc/
     plugnpay_ss2/

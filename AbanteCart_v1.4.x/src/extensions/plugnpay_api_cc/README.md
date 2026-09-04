@@ -1,6 +1,6 @@
 # PlugnPay Remote API Module for AbanteCart 1.4.x
 
-**Version:** v1.0.1
+**Version:** v1.0.3
 
 Credit card payments via PlugnPay’s Remote API (`https://pay1.plugnpay.com/payment/pnpremote.cgi`).
 
@@ -112,7 +112,13 @@ Set **Debug Logging** to **Log File**. Sanitized logs are written under the Aban
 plugnpay_api_YYYYMMDD.log
 ```
 
-Never logged: full card number, CVV, or publisher-password.
+Never logged: PAN, CVV, expiry, or publisher-password (including last-4). Debug must stay Off in production.
+
+Standalone filter tests (no AbanteCart bootstrap):
+
+```
+php AbanteCart_v1.4.x/tests/run.php
+```
 
 ## Troubleshooting
 
@@ -143,8 +149,8 @@ If the response is blank: firewall / outbound HTTPS / DNS issue.
 - [ ] Confirm processes payment (no endless spinner); Network tab shows POST to `extension/plugnpay_api_cc/send`
 - [ ] Approved authonly creates a **Pending** order with AUTH + orderID history and lands on **`checkout/finalize`**
 - [ ] Approved authpostauth uses Completed Order Status
-- [ ] Declined card shows gateway message and restores the payment form
-- [ ] Debug log redacts PAN/CVV/password
+- [ ] Declined card shows canned message (not raw gateway HTML) and restores the payment form
+- [ ] Debug log never contains PAN/CVV/password (including last-4)
 - [ ] Method hidden without HTTPS
 - [ ] Location restriction works
 
@@ -158,6 +164,7 @@ src/extensions/plugnpay_api_cc/
   core/
     plugnpay_api_cc.php
     PnPApi.php
+    PnPFilter.php
     PnPLogger.php
   admin/language/english/plugnpay_api_cc/plugnpay_api_cc.xml
   storefront/
@@ -172,6 +179,24 @@ src/extensions/plugnpay_api_cc/
 ```
 
 ## Changelog
+
+### v1.0.3
+
+- Reject PAN/CVV values containing unexpected characters instead of silently stripping them
+- Reject array-shaped card fields and invalid/non-finite amounts
+- Fail closed when the order payment-method key is absent or different
+- Clear the raw gateway response after parsing
+- Disable logging when no protected writable log directory is configured
+
+### v1.0.2
+
+- Strict PAN/CVV/expiry/name filtering (Luhn, length, charset)
+- Reject already-paid orders before a second gateway authorize
+- Approve only `FinalStatus=success`; require HTTP 200 and TLS 1.2+
+- Canned shopper errors; do not echo gateway or cURL messages
+- Debug logs never store PAN/SAD/passwords (including last-4)
+- Require an actual HTTPS request to offer and process payment
+- $0 `checkcard` path removed
 
 ### v1.0.1
 

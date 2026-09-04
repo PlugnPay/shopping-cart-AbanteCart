@@ -4,6 +4,7 @@
 ------------------------------------------------------------------------------*/
 if (!defined('DIR_CORE')) {
 	header('Location: static_pages/');
+	exit;
 }
 
 class ModelExtensionPlugnpaySs2 extends Model {
@@ -11,6 +12,7 @@ class ModelExtensionPlugnpaySs2 extends Model {
 		$language = new ALanguage($this->registry, $this->language->getLanguageCode(), 0);
 		$language->load($language->language_details['directory']);
 		$language->load('plugnpay_ss2/plugnpay_ss2');
+		require_once(DIR_EXT . 'plugnpay_ss2/core/PnPSs2Filter.php');
 
 		if ($this->config->get('plugnpay_ss2_status')) {
 			$query = $this->db->query(
@@ -31,12 +33,13 @@ class ModelExtensionPlugnpaySs2 extends Model {
 			if (!$this->config->get('plugnpay_ss2_login')) {
 				$status = false;
 			}
+			if (!$this->config->get('plugnpay_ss2_response_hash')) {
+				$status = false;
+			}
 
-			// Strongly recommend HTTPS (required for reliable return session)
 			if ($status) {
-				$https_on = (!empty($this->request->server['HTTPS']) && $this->request->server['HTTPS'] !== 'off');
-				$config_ssl = (defined('HTTPS_SERVER') && strpos(HTTPS_SERVER, 'https:') === 0);
-				if (!$https_on && !$config_ssl && !(bool)$this->config->get('config_ssl')) {
+				$https_on = PnPSs2Filter::isHttpsRequest(is_array($this->request->server) ? $this->request->server : array());
+				if (!$https_on) {
 					$status = false;
 				}
 			}

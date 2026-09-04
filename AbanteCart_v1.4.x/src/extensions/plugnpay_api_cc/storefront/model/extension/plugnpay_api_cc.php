@@ -19,6 +19,7 @@
 ------------------------------------------------------------------------------*/
 if (!defined('DIR_CORE')) {
 	header('Location: static_pages/');
+	exit;
 }
 
 class ModelExtensionPlugnpayApiCc extends Model {
@@ -27,6 +28,7 @@ class ModelExtensionPlugnpayApiCc extends Model {
 		$language = new ALanguage($this->registry, $this->language->getLanguageCode(), 0);
 		$language->load($language->language_details['directory']);
 		$language->load('plugnpay_api_cc/plugnpay_api_cc');
+		require_once(DIR_EXT . 'plugnpay_api_cc/core/PnPFilter.php');
 
 		if ($this->config->get('plugnpay_api_cc_status')) {
 			$query = $this->db->query(
@@ -49,11 +51,9 @@ class ModelExtensionPlugnpayApiCc extends Model {
 				$status = false;
 			}
 
-			// Production only: require HTTPS on the storefront
 			if ($status) {
-				$https_on = (!empty($this->request->server['HTTPS']) && $this->request->server['HTTPS'] !== 'off');
-				$config_ssl = (defined('HTTPS_SERVER') && strpos(HTTPS_SERVER, 'https:') === 0);
-				if (!$https_on && !$config_ssl && !(bool)$this->config->get('config_ssl')) {
+				$https_on = PnPFilter::isHttpsRequest(is_array($this->request->server) ? $this->request->server : array());
+				if (!$https_on) {
 					$status = false;
 				}
 			}

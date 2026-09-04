@@ -1,6 +1,6 @@
 # PlugnPay Smart Screens v2 Module for AbanteCart 1.4.x
 
-**Version:** v1.0.1
+**Version:** v1.0.3
 
 Hosted **authorization-only** payments via PlugnPay Smart Screens v2 (`https://pay1.plugnpay.com/pay/`).
 
@@ -12,7 +12,8 @@ This extension follows the same setup and usage as the Zen Cart 2.2 `PlugnPaySs2
 - Authorization-only (`pb_post_auth=no`) — orders stay Pending
 - Dedicated `plugnpay_ss2` database table for gateway communications (optional)
 - Debug logging with PAN / CVV / password redaction
-- Basic return checks (amount, gateway account, session / order id)
+- Authenticated gateway returns using a server-only Response Verification Hash
+- One-time session, order, amount, currency, and gateway-account binding
 - PHP **8.2+** / AbanteCart **1.4.x** (tested target: **1.4.4**)
 - Production only (HTTPS required; no Test/Production toggle)
 
@@ -32,7 +33,7 @@ This module does **not** include AbanteCart admin Capture / Void / Refund. Settl
 
 ## PCI notice
 
-This module does **not** collect cardholder data on your server. Customers are redirected to PlugnPay’s hosted Smart Screens pages.
+This module does **not** collect cardholder data through the AbanteCart payment form. Customers are redirected to PlugnPay’s hosted Smart Screens pages. Your actual PCI DSS scope depends on the complete environment and must be confirmed with your acquirer or QSA.
 
 ## Requirements
 
@@ -40,7 +41,8 @@ This module does **not** collect cardholder data on your server. Customers are r
 - PHP **8.2+**
 - Storefront **HTTPS** (required for reliable return session)
 - PlugnPay **gateway account username** (merchant-supplied; there is no public demo account)
-- Enable **shared session** in AbanteCart store settings if cross-site return drops cookies (`session_id` is appended to `pb_success_url`)
+- PlugnPay **Response Verification Hash** configured under Security Administration (SHA-256 preferred)
+- Secure cookies configured with `SameSite=None` for the cross-site POST callback
 
 No Remote Client Password or cURL is required for this module (those apply to the Remote API module).
 
@@ -53,8 +55,9 @@ AbanteCart’s package installer accepts **`.tar.gz` only**.
 1. Upload `abantecart_1.4_ss2_module.tar.gz` via Admin → **Extensions** → **Install Extension** → **Extension Upload**.
 2. Accept the license and finish the installer.
 3. Admin → **Extensions** → **Payments** → enable **PlugnPay Smart Screens v2**.
-4. Configure Gateway Account, currency, database storage, debug logging, and location.
-5. Place a test order with your merchant account (per your PlugnPay procedures).
+4. In PlugnPay Security Administration, enable the outbound Response Verification Hash and choose SHA-256 when available.
+5. Configure the same server-only hash in AbanteCart along with Gateway Account, currency, database storage, debug logging, and location.
+6. Place a test order with your merchant account (per your PlugnPay procedures).
 
 ### Manual FTP install
 
@@ -69,8 +72,9 @@ Then enable under Admin → Extensions → Payments.
 | Setting | Key | Notes |
 |---|---|---|
 | Gateway Account | `plugnpay_ss2_login` | PlugnPay username (`pt_gateway_account`) |
+| Response Verification Hash | `plugnpay_ss2_response_hash` | Required server-only outbound verification secret; SHA-256 preferred |
 | Currency Supported | `plugnpay_ss2_currency` | USD, CAD, GBP, EUR, AUD, NZD |
-| Enable Database Storage | `plugnpay_ss2_store_data` | Writes `{prefix}plugnpay_ss2` |
+| Enable Database Storage | `plugnpay_ss2_store_data` | Allowlisted snapshots only; default **No** |
 | Debug Logging | `plugnpay_ss2_debugging` | `0` = Off, `1` = Log File |
 | Location | `plugnpay_ss2_location_id` | Optional geo restriction |
 
@@ -93,22 +97,25 @@ There is **no** Test/Production toggle and **no** public demo publisher.
 `pb_success_url` must use the **response** route prefix `r/`:
 
 ```text
-https://{store}/index.php?rt=r/extension/plugnpay_ss2/callback&session_id={session}&order_id={id}
+https://{store}/index.php?rt=r/extension/plugnpay_ss2/callback
 ```
 
 Do **not** use bare `rt=extension/plugnpay_ss2/callback` — that can 404 on storefront routing. Success then goes to `checkout/finalize` (not the removed `checkout/success` page).
 
 ### Return validation
 
-Accepted return POST must include `pi_response_status`. On `success`, the module also checks:
+Accepted return POST must include `pi_response_status`. On `success`, the module checks:
 
-- Returned `pt_transaction_amount` matches the amount stored in session at submit time (or order total if session was lost)
-- Returned `pt_gateway_account` matches the configured Gateway Account (when present)
-- Returned custom-field `abcsession` matches the session ID sent at submit and the current session
+- PlugnPay `pt_transaction_response_hash` (or legacy `resphash`) against the server-only Response Verification Hash; SHA-256 and legacy MD5 responses are supported
+- One-time return token and session-binding MAC (`abc_return_token` / `abc_return_mac`) against values stored in the checkout session
+- Session `expected_order_id` (POST/GET order ids are ignored)
+- Returned `pt_transaction_amount` matches the amount stored in session (integer cents)
+- Returned `pt_currency` is present and matches
+- Returned `pt_gateway_account` is present and matches the configured Gateway Account
+- Order `payment_method_key` is present and exactly `plugnpay_ss2`
+- Already-confirmed orders are not status-downgraded; customer is sent to finalize
 
-Cryptographic response-link / hash verification is **not** included in v1.0.1 (same as Zen Cart SS2 v1.0.1).
-
-**Session restore:** `pb_success_url` includes `session_id=<session>` and `order_id=<id>` so AbanteCart can resume the checkout session after the cross-site POST. The same session and order id are also sent as `pt_custom_name_N` / `pt_custom_value_N`.
+No session or order identifier is placed in `pb_success_url`. The browser must return the secure session cookie; configure it with `SameSite=None`.
 
 ### Key fields submitted to `/pay/`
 
@@ -120,7 +127,7 @@ Cryptographic response-link / hash verification is **not** included in v1.0.1 (s
 | `pb_post_auth` | Always `no` (authorization-only) |
 | `pt_account_code_1` | AbanteCart order id |
 | `pt_payment_name` + billing fields | Prefill billing on hosted page |
-| `pb_success_url` | Return URL → `r/extension/plugnpay_ss2/callback` with `session_id` + `order_id` |
+| `pb_success_url` | Return URL → `r/extension/plugnpay_ss2/callback` (no session id in URL) |
 | `pb_transition_type` | `post` |
 | `pd_display_items` | `no` |
 | `pd_collect_shipping_information` | `no` |
@@ -136,15 +143,21 @@ Set **Debug Logging** to **Log File**. Sanitized logs:
 plugnpay_ss2_YYYYMMDD.log
 ```
 
-When **Enable Database Storage** is Yes, install creates `{prefix}plugnpay_ss2` and stores sanitized submit/response snapshots. Uninstall drops the table.
+When **Enable Database Storage** is Yes, install creates `{prefix}plugnpay_ss2` and stores allowlisted status/amount/auth/txn snapshots (not full POST, not session ids). Default is **No**. Uninstall drops the table.
 
-Never logged: full card number, CVV, or publisher-password.
+Never logged: PAN, CVV, passwords, return tokens, or session ids.
+
+Standalone filter tests (no AbanteCart bootstrap):
+
+```
+php AbanteCart_v1.4.x/tests/run.php
+```
 
 ## Troubleshooting
 
 | Symptom | What to check |
 |---|---|
-| Customer returns but order not confirmed / session error | Enable shared session; ensure return hits HTTPS `rt=r/extension/plugnpay_ss2/callback` with `session_id`; SameSite cookies |
+| Customer returns but order not confirmed / session error | Ensure return hits HTTPS `rt=r/extension/plugnpay_ss2/callback`; configure the session cookie `Secure; SameSite=None` |
 | “The page you requested cannot be found!” after return | Confirm package is **v1.0.1+** (`r/` callback route + `checkout/finalize`). Re-upload/reinstall if still on v1.0.0. |
 | “Amount did not match” | Cart total changed between confirm and return, or currency conversion mismatch |
 | “Gateway account” mismatch | Returned `pt_gateway_account` ≠ configured Gateway Account |
@@ -152,6 +165,27 @@ Never logged: full card number, CVV, or publisher-password.
 | Need to capture / void / refund | Use PlugnPay Merchant Admin |
 
 ## Changelog
+
+### v1.0.3
+
+- Require PlugnPay's server-secret Response Verification Hash before confirming an order
+- Prefer SHA-256 while retaining legacy MD5 response-hash compatibility
+- Remove session identifiers from the callback URL
+- Fail closed when the order payment-method key is absent or different
+- Require returned `pt_account_code_1` to match the session order
+- Consume a correctly session-bound callback once, including failed validation
+- Reject malformed, array-shaped, over-precise, or incomplete callback fields
+- Disable logging when no protected writable log directory is configured
+- Use InnoDB storage without a legacy session-id column
+
+### v1.0.2
+
+- Merchant return token + HMAC required on callback (POST/GET order ids ignored)
+- Amount compared in integer cents; currency and gateway account required
+- Do not downgrade already-confirmed orders; require `plugnpay_ss2` payment method
+- Canned shopper errors; allowlisted hosted fields, logs, and DB columns
+- Database storage defaults off; no session id stored in the SS2 table
+- Require an actual HTTPS request for method, redirect, and callback
 
 ### v1.0.1
 
@@ -166,11 +200,13 @@ Never logged: full card number, CVV, or publisher-password.
 ## Manual test checklist
 
 - [ ] Extension installs via `.tar.gz` package upload
-- [ ] Configuration shows Gateway Account / Currency / Store Data / Debug (no password / auth-type)
+- [ ] Configuration shows Gateway Account / Response Verification Hash / Currency / Store Data / Debug
+- [ ] Forged or missing `pt_transaction_response_hash` cannot confirm an order
 - [ ] Approved payment creates a **Pending** order with AUTH + orderID history
 - [ ] After approval, customer lands on **`checkout/finalize`** (not a 404)
-- [ ] Return URL in debug / DB storage uses `rt=r/extension/plugnpay_ss2/callback`
-- [ ] Declined card shows gateway message and restores fast checkout
+- [ ] Return URL uses `rt=r/extension/plugnpay_ss2/callback` without a session id
+- [ ] Declined card shows canned message and restores fast checkout
+- [ ] Debug log never contains PAN/CVV/tokens
 - [ ] Submit uses `pb_post_auth=no` (visible in debug log / DB storage)
 - [ ] `plugnpay_ss2` table stores rows when Store Data is enabled
 - [ ] Debug log redacts PAN/CVV/password
@@ -188,6 +224,7 @@ src/extensions/plugnpay_ss2/
   README.md
   core/
     plugnpay_ss2.php
+    PnPSs2Filter.php
     PnPSs2Logger.php
   admin/language/english/plugnpay_ss2/plugnpay_ss2.xml
   storefront/
